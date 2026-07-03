@@ -2,7 +2,7 @@ const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const https = require('https');
 const { requireAdmin } = require('../middleware/auth');
-const { readData, writeData, injectGaTag } = require('../lib/github-data');
+const { readData, writeData, injectGaTag, syncSitesFromGitHub } = require('../lib/github-data');
 
 const GH_TOKEN = process.env.GITHUB_TOKEN;
 const GH_ORG = process.env.GITHUB_ORG || 'josephbusinesses664-dot';
@@ -129,6 +129,16 @@ router.patch('/sites/:slug', async (req, res) => {
     Object.assign(sites[req.params.slug], req.body);
     await writeData('sites', sites, `Update site: ${req.params.slug}`);
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/sync-sites — discover new preview-* repos and register them
+router.post('/sync-sites', async (req, res) => {
+  try {
+    const result = await syncSitesFromGitHub();
+    res.json({ ok: true, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

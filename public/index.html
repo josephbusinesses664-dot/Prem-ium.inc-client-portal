@@ -7,20 +7,36 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0a0618; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; }
-  header { background: #0f0a1e; border-bottom: 1px solid #2d1f5e; padding: 18px 32px; display: flex; align-items: center; gap: 14px; }
+  ::selection { background: rgba(124,58,237,.35); color: #fff; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0618; }
+  ::-webkit-scrollbar-thumb { background: #2d1f5e; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(600px 400px at 85% -5%, rgba(124,58,237,.14), transparent 70%),
+      radial-gradient(500px 350px at -5% 40%, rgba(236,72,153,.08), transparent 70%);
+  }
+  header, main, footer { position: relative; z-index: 1; }
+  header { background: rgba(15,10,30,.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid #2d1f5e; padding: 18px 32px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10; }
   .logo { font-size: 22px; font-weight: 800; color: #a78bfa; letter-spacing: -0.5px; }
-  .logo span { color: #e2e8f0; }
+  .logo span { color: #ec4899; }
   .tagline { font-size: 13px; color: #6b7280; margin-left: auto; }
-  .login-btn { background: #7c3aed; color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
-  .login-btn:hover { background: #6d28d9; }
+  .login-btn { background: linear-gradient(135deg, #7c3aed, #ec4899); color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; transition: transform .18s, box-shadow .18s; }
+  .login-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(124,58,237,.4); }
   main { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
   h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
   .subtitle { color: #9ca3af; margin-bottom: 36px; font-size: 15px; }
-  .search { width: 100%; max-width: 400px; background: #1e1033; border: 1px solid #4c1d95; border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px; margin-bottom: 28px; outline: none; }
-  .search:focus { border-color: #7c3aed; }
+  .search { width: 100%; max-width: 400px; background: #1e1033; border: 1px solid #4c1d95; border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px; margin-bottom: 28px; outline: none; transition: border-color .2s, box-shadow .2s; }
+  .search:hover { border-color: rgba(124,58,237,.6); box-shadow: 0 0 12px rgba(124,58,237,.15); }
+  .search:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.18), 0 0 20px rgba(124,58,237,.3), 0 0 40px rgba(236,72,153,.12); }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-  .card { background: #1e1033; border: 1px solid #2d1f5e; border-radius: 12px; padding: 22px; transition: border-color .2s, transform .2s; cursor: pointer; }
-  .card:hover { border-color: #7c3aed; transform: translateY(-2px); }
+  .card { background: #1e1033; border: 1px solid #2d1f5e; border-radius: 12px; padding: 22px; transition: border-color .25s, transform .25s, box-shadow .25s; cursor: pointer; position: relative; overflow: hidden; opacity: 0; transform: translateY(18px); animation: cardIn .55s ease forwards; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #7c3aed, #ec4899); opacity: 0; transition: opacity .25s; }
+  .card:hover { border-color: #7c3aed; transform: translateY(-4px); box-shadow: 0 10px 36px rgba(124,58,237,.22); }
+  .card:hover::before { opacity: 1; }
+  @keyframes cardIn { to { opacity: 1; transform: none; } }
   .card-badge { font-size: 11px; font-weight: 600; background: #2d1f5e; color: #a78bfa; padding: 3px 8px; border-radius: 99px; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px; }
   .card-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
   .card-city { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
@@ -67,8 +83,8 @@ function render(sites) {
   const grid = document.getElementById('grid');
   const entries = Object.entries(sites);
   if (!entries.length) { grid.innerHTML = '<div class="empty">No sites found.</div>'; return; }
-  grid.innerHTML = entries.map(([slug, s]) => `
-    <div class="card" data-slug="${slug}">
+  grid.innerHTML = entries.map(([slug, s], i) => `
+    <div class="card" data-slug="${slug}" style="animation-delay:${Math.min(i * 45, 700)}ms">
       <span class="card-badge">${s.category || 'Business'}</span>
       <div class="card-name">${s.business}</div>
       <div class="card-city"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px;margin-bottom:1px;opacity:.7"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>${s.city}</div>

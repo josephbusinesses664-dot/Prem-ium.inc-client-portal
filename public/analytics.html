@@ -107,6 +107,26 @@
     .chat-sidebar { width: 100%; height: 360px; border-left: none; border-top: 1px solid #2d1f5e; }
     .mid-row { grid-template-columns: 1fr; }
   }
+
+  /* ── Seasoning ── */
+  ::selection { background: rgba(124,58,237,.35); color: #fff; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0618; }
+  ::-webkit-scrollbar-thumb { background: #2d1f5e; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+  .kpi-card, .panel { transition: border-color .25s, box-shadow .25s, transform .25s; }
+  .kpi-card:hover { border-color: #7c3aed; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,58,237,.14); }
+  .panel:hover { border-color: rgba(124,58,237,.55); box-shadow: 0 6px 26px rgba(124,58,237,.12); }
+  .kpi-value { background: linear-gradient(135deg, #a78bfa, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .bar-fill { background: linear-gradient(90deg, #7c3aed, #ec4899); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+  .date-tab { transition: border-color .18s, color .18s, background .18s; }
+  .date-tab.active { background: linear-gradient(135deg, #7c3aed, #ec4899); border-color: transparent; }
+  .chat-input { transition: border-color .2s, box-shadow .2s; }
+  .chat-input:focus { box-shadow: 0 0 0 3px rgba(124,58,237,.16), 0 0 18px rgba(124,58,237,.25); }
+  .chat-send { transition: transform .15s, box-shadow .15s; }
+  .chat-send:hover { transform: scale(1.08); box-shadow: 0 4px 14px rgba(124,58,237,.4); }
+  .chat-suggestion { transition: border-color .18s, color .18s, transform .18s; }
+  .chat-suggestion:hover { border-color: #7c3aed; transform: translateY(-1px); }
 </style>
 </head>
 <body>

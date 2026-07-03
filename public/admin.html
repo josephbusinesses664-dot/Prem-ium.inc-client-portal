@@ -47,6 +47,23 @@
   select.status-select { background: #0f0a1e; border: 1px solid #4c1d95; border-radius: 6px; padding: 4px 8px; color: #e2e8f0; font-size: 12px; cursor: pointer; }
   .note-input { background: #0f0a1e; border: 1px solid #4c1d95; border-radius: 6px; padding: 4px 8px; color: #e2e8f0; font-size: 12px; width: 180px; }
   .req-desc { max-width: 260px; word-break: break-word; }
+
+  /* ── Seasoning ── */
+  ::selection { background: rgba(124,58,237,.35); color: #fff; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0618; }
+  ::-webkit-scrollbar-thumb { background: #2d1f5e; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+  .btn { transition: transform .18s, box-shadow .18s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: linear-gradient(135deg, #7c3aed, #ec4899); }
+  .btn-primary:hover { box-shadow: 0 5px 18px rgba(124,58,237,.4); }
+  .panel.active { animation: panelIn .35s ease; }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  tbody tr { transition: background .15s; }
+  tbody tr:hover { background: rgba(124,58,237,.07); }
+  .form-row input, .form-row select, .note-input { transition: border-color .2s, box-shadow .2s; }
+  .form-row input:focus, .form-row select:focus, .note-input:focus { box-shadow: 0 0 0 3px rgba(124,58,237,.16), 0 0 16px rgba(124,58,237,.22); }
 </style>
 </head>
 <body>
@@ -99,6 +116,7 @@
   <div class="section-title" style="display:flex;align-items:center;gap:14px">
     All Sites
     <button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="injectAll()"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;margin-bottom:1px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Inject GA Tags — All Sites</button>
+    <button class="btn btn-info" style="font-size:12px;padding:6px 14px" onclick="syncSites()"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;margin-bottom:1px"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>Sync New Sites</button>
     <span id="inject-all-status" style="font-size:12px;color:#86efac"></span>
   </div>
   <div class="form-row">
@@ -369,6 +387,24 @@ async function injectAll() {
       if (firstFail) msg += ` — first error: ${firstFail.error}`;
     }
     status.textContent = msg;
+    loadSites();
+  } catch (err) {
+    status.style.color = '#f87171';
+    status.textContent = 'Error: ' + err.message;
+  }
+}
+
+async function syncSites() {
+  const status = document.getElementById('inject-all-status');
+  status.style.color = '#86efac';
+  status.textContent = 'Scanning GitHub for new preview repos…';
+  try {
+    const r = await fetch('/api/admin/sync-sites', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    status.textContent = d.added.length
+      ? `Registered ${d.added.length} new site(s): ${d.added.join(', ')}`
+      : 'Everything already in sync — no new sites found';
     loadSites();
   } catch (err) {
     status.style.color = '#f87171';
