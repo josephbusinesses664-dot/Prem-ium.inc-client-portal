@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: openclaw-client-portal
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_ORG
+        value: josephbusinesses664-dot
+      - key: PORTAL_REPO
+        value: openclaw-client-portal
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: prem
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_RESULTS_CH
+        value: "1516605432830103602"

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login — OpenClaw Portal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0618; color: #e2e8f0; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  header { background: #0f0a1e; border-bottom: 1px solid #2d1f5e; padding: 16px 24px; }
+  .logo { font-size: 20px; font-weight: 800; color: #a78bfa; text-decoration: none; }
+  .logo span { color: #e2e8f0; }
+  .center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 16px; }
+  .box { background: #1e1033; border: 1px solid #2d1f5e; border-radius: 14px; padding: 40px; width: 100%; max-width: 380px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .sub { color: #9ca3af; font-size: 14px; margin-bottom: 28px; }
+  label { display: block; font-size: 13px; font-weight: 600; color: #a78bfa; margin-bottom: 6px; }
+  input { width: 100%; background: #0f0a1e; border: 1px solid #4c1d95; border-radius: 8px; padding: 11px 14px; color: #e2e8f0; font-size: 14px; margin-bottom: 18px; outline: none; }
+  input:focus { border-color: #7c3aed; }
+  .btn { width: 100%; background: #7c3aed; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; }
+  .btn:hover { background: #6d28d9; }
+  .btn:disabled { background: #4c1d95; cursor: not-allowed; }
+  .error { color: #f87171; font-size: 13px; margin-top: 12px; text-align: center; min-height: 18px; }
+  .back { text-align: center; margin-top: 20px; font-size: 13px; color: #6b7280; }
+  .back a { color: #a78bfa; text-decoration: none; }
+</style>
+</head>
+<body>
+<header><a class="logo" href="/">Open<span>Claw</span></a></header>
+<div class="center">
+  <div class="box">
+    <h1>Welcome back</h1>
+    <p class="sub">Log in to view and edit your website</p>
+    <form id="form" autocomplete="on">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocomplete="username" placeholder="your username" required>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+      <button class="btn" type="submit" id="btn">Log In</button>
+      <div class="error" id="err"></div>
+    </form>
+    <div class="back"><a href="/">← Back to site gallery</a></div>
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const next = params.get('next') || '/dashboard';
+
+document.getElementById('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  const err = document.getElementById('err');
+  btn.disabled = true;
+  btn.textContent = 'Logging in…';
+  err.textContent = '';
+
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value,
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Login failed');
+    localStorage.setItem('oc_token', data.token);
+    localStorage.setItem('oc_role', data.role);
+    localStorage.setItem('oc_slug', data.siteSlug || '');
+    localStorage.setItem('oc_username', document.getElementById('username').value.trim());
+
+    if (data.role === 'admin') {
+      location.href = next === '/dashboard' ? '/admin' : next;
+    } else {
+      location.href = next;
+    }
+  } catch (ex) {
+    err.textContent = ex.message;
+    btn.disabled = false;
+    btn.textContent = 'Log In';
+  }
+});
+</script>
+</body>
+</html>

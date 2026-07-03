@@ -1,0 +1,22 @@
+{
+  "name": "openclaw-client-portal",
+  "version": "1.0.0",
+  "description": "Client website editor portal for OpenClaw",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cheerio": "^1.0.0",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

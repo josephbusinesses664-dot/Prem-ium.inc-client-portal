@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenClaw — Client Sites</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0618; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; }
+  header { background: #0f0a1e; border-bottom: 1px solid #2d1f5e; padding: 18px 32px; display: flex; align-items: center; gap: 14px; }
+  .logo { font-size: 22px; font-weight: 800; color: #a78bfa; letter-spacing: -0.5px; }
+  .logo span { color: #e2e8f0; }
+  .tagline { font-size: 13px; color: #6b7280; margin-left: auto; }
+  .login-btn { background: #7c3aed; color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .login-btn:hover { background: #6d28d9; }
+  main { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { color: #9ca3af; margin-bottom: 36px; font-size: 15px; }
+  .search { width: 100%; max-width: 400px; background: #1e1033; border: 1px solid #4c1d95; border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px; margin-bottom: 28px; outline: none; }
+  .search:focus { border-color: #7c3aed; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .card { background: #1e1033; border: 1px solid #2d1f5e; border-radius: 12px; padding: 22px; transition: border-color .2s, transform .2s; cursor: pointer; }
+  .card:hover { border-color: #7c3aed; transform: translateY(-2px); }
+  .card-badge { font-size: 11px; font-weight: 600; background: #2d1f5e; color: #a78bfa; padding: 3px 8px; border-radius: 99px; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .card-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .card-city { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+  .card-actions { display: flex; gap: 8px; }
+  .btn-view { flex: 1; background: #0f0a1e; border: 1px solid #4c1d95; color: #a78bfa; padding: 8px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; display: block; }
+  .btn-view:hover { background: #2d1f5e; }
+  .btn-edit { flex: 1; background: #7c3aed; color: #fff; border: none; padding: 8px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; display: block; }
+  .btn-edit:hover { background: #6d28d9; }
+  .empty { color: #6b7280; text-align: center; padding: 60px 0; }
+  .loading { color: #6b7280; text-align: center; padding: 60px 0; }
+  footer { text-align: center; padding: 32px; color: #4b5563; font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Open<span>Claw</span></div>
+  <span class="tagline">Client Website Portal</span>
+  <a href="/login" class="login-btn">Edit My Site</a>
+</header>
+<main>
+  <h1>Our Client Sites</h1>
+  <p class="subtitle">Browse all websites we've built. Log in to edit yours.</p>
+  <input class="search" type="text" placeholder="Search businesses, cities, categories…" id="search" autocomplete="off">
+  <div class="grid" id="grid">
+    <div class="loading">Loading sites…</div>
+  </div>
+</main>
+<footer>Powered by OpenClaw &mdash; built with care for local businesses</footer>
+
+<script>
+let allSites = {};
+
+async function load() {
+  try {
+    const r = await fetch('/api/sites');
+    allSites = await r.json();
+    render(allSites);
+  } catch (e) {
+    document.getElementById('grid').innerHTML = '<div class="empty">Could not load sites.</div>';
+  }
+}
+
+function render(sites) {
+  const grid = document.getElementById('grid');
+  const entries = Object.entries(sites);
+  if (!entries.length) { grid.innerHTML = '<div class="empty">No sites found.</div>'; return; }
+  grid.innerHTML = entries.map(([slug, s]) => `
+    <div class="card" data-slug="${slug}">
+      <span class="card-badge">${s.category || 'Business'}</span>
+      <div class="card-name">${s.business}</div>
+      <div class="card-city">📍 ${s.city}</div>
+      <div class="card-actions">
+        <a class="btn-view" href="${s.renderUrl}" target="_blank" rel="noopener">View Live Site</a>
+        <a class="btn-edit" href="/login?next=/dashboard">Edit My Site</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  if (!q) { render(allSites); return; }
+  const filtered = {};
+  for (const [slug, s] of Object.entries(allSites)) {
+    if ((s.business + s.city + s.category).toLowerCase().includes(q)) filtered[slug] = s;
+  }
+  render(filtered);
+});
+
+load();
+</script>
+</body>
+</html>

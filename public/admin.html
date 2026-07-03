@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — OpenClaw Portal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0618; color: #e2e8f0; font-family: system-ui, sans-serif; min-height: 100vh; }
+  header { background: #0f0a1e; border-bottom: 1px solid #2d1f5e; padding: 14px 24px; display: flex; align-items: center; gap: 14px; }
+  .logo { font-size: 20px; font-weight: 800; color: #a78bfa; text-decoration: none; }
+  .logo span { color: #e2e8f0; }
+  .user-info { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #9ca3af; }
+  .logout { background: none; border: 1px solid #4c1d95; color: #a78bfa; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid #2d1f5e; background: #0f0a1e; padding: 0 24px; }
+  .tab { padding: 14px 20px; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.active { color: #a78bfa; border-bottom-color: #7c3aed; }
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 14px; color: #6b7280; font-weight: 600; border-bottom: 1px solid #2d1f5e; }
+  td { padding: 10px 14px; border-bottom: 1px solid #1a1133; vertical-align: top; }
+  tr:hover td { background: #1e1033; }
+  a { color: #a78bfa; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .badge { padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .badge-pending { background: #451a03; color: #fbbf24; }
+  .badge-in-progress { background: #1e3a5f; color: #93c5fd; }
+  .badge-done { background: #052e16; color: #86efac; }
+  .badge-admin { background: #4c1d95; color: #c4b5fd; }
+  .badge-client { background: #1e3a5f; color: #93c5fd; }
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; background: #1e1033; padding: 18px; border-radius: 10px; border: 1px solid #2d1f5e; }
+  .form-row label { font-size: 12px; color: #a78bfa; font-weight: 600; display: block; margin-bottom: 5px; }
+  .form-row input, .form-row select { background: #0f0a1e; border: 1px solid #4c1d95; border-radius: 7px; padding: 8px 12px; color: #e2e8f0; font-size: 13px; min-width: 130px; outline: none; }
+  .form-row input:focus, .form-row select:focus { border-color: #7c3aed; }
+  .btn { padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-primary { background: #7c3aed; color: #fff; }
+  .btn-primary:hover { background: #6d28d9; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-danger { background: none; color: #f87171; border: 1px solid #7f1d1d; }
+  .btn-danger:hover { background: #7f1d1d22; }
+  .btn-info { background: none; color: #93c5fd; border: 1px solid #1d4ed8; }
+  .btn-info:hover { background: #1e3a5f; }
+  .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #a78bfa; }
+  .status-msg { font-size: 13px; color: #86efac; margin-top: 8px; }
+  select.status-select { background: #0f0a1e; border: 1px solid #4c1d95; border-radius: 6px; padding: 4px 8px; color: #e2e8f0; font-size: 12px; cursor: pointer; }
+  .note-input { background: #0f0a1e; border: 1px solid #4c1d95; border-radius: 6px; padding: 4px 8px; color: #e2e8f0; font-size: 12px; width: 180px; }
+  .req-desc { max-width: 260px; word-break: break-word; }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">Open<span>Claw</span></a>
+  <div class="user-info">
+    <span>Admin Panel</span>
+    <button class="logout" onclick="logout()">Log out</button>
+  </div>
+</header>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('requests')">Change Requests</div>
+  <div class="tab" onclick="switchTab('users')">Client Accounts</div>
+  <div class="tab" onclick="switchTab('sites')">Sites</div>
+</div>
+<main>
+
+<!-- Requests panel -->
+<div id="panel-requests" class="panel active">
+  <div class="section-title">Change Requests</div>
+  <div id="requests-table">Loading…</div>
+</div>
+
+<!-- Users panel -->
+<div id="panel-users" class="panel">
+  <div class="section-title">Client Accounts</div>
+  <div class="form-row" id="user-form">
+    <div><label>Username</label><input id="u-username" placeholder="cbsplumbing"></div>
+    <div><label>Password</label><input id="u-password" type="password" placeholder="••••••••"></div>
+    <div><label>Site Slug</label><input id="u-slug" placeholder="52gos3"></div>
+    <div><label>Role</label>
+      <select id="u-role">
+        <option value="client">Client</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div><label>&nbsp;</label><button class="btn btn-primary" onclick="createUser()">Create / Update</button></div>
+  </div>
+  <div id="user-status" class="status-msg"></div>
+  <table>
+    <thead><tr><th>Username</th><th>Site Slug</th><th>Role</th><th>Actions</th></tr></thead>
+    <tbody id="users-tbody">
+      <tr><td colspan="4" style="color:#6b7280">Loading…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Sites panel -->
+<div id="panel-sites" class="panel">
+  <div class="section-title">All Sites</div>
+  <div class="form-row">
+    <div><label>Slug</label><input id="s-slug" placeholder="abc123"></div>
+    <div><label>Business Name</label><input id="s-biz" placeholder="CBS Plumbing"></div>
+    <div><label>City</label><input id="s-city" placeholder="Santa Rosa, CA"></div>
+    <div><label>Category</label><input id="s-cat" placeholder="Plumbing"></div>
+    <div><label>Render URL</label><input id="s-render" placeholder="https://preview-abc123.onrender.com" style="min-width:260px"></div>
+    <div><label>GitHub Repo</label><input id="s-repo" placeholder="preview-abc123"></div>
+    <div><label>&nbsp;</label><button class="btn btn-primary" onclick="addSite()">Add Site</button></div>
+  </div>
+  <div id="site-status" class="status-msg"></div>
+  <table>
+    <thead><tr><th>Business</th><th>City</th><th>Category</th><th>Render</th><th>GitHub</th><th>Actions</th></tr></thead>
+    <tbody id="sites-tbody">
+      <tr><td colspan="6" style="color:#6b7280">Loading…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+
+<script>
+const token = localStorage.getItem('oc_token');
+const role = localStorage.getItem('oc_role');
+if (!token || role !== 'admin') location.href = '/login';
+
+const GH_ORG = 'josephbusinesses664-dot';
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const tabs = ['requests','users','sites'];
+    t.classList.toggle('active', tabs[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'requests') loadRequests();
+  if (name === 'users') loadUsers();
+  if (name === 'sites') loadSites();
+}
+
+// ── Requests ─────────────────────────────────────────────────────────────────
+
+async function loadRequests() {
+  try {
+    const r = await fetch('/api/requests', { headers: { Authorization: `Bearer ${token}` } });
+    const data = await r.json();
+    const el = document.getElementById('requests-table');
+    if (!data.length) { el.innerHTML = '<div style="color:#6b7280;padding:20px 0">No requests yet.</div>'; return; }
+    el.innerHTML = `<table>
+      <thead><tr><th>Business</th><th>Description</th><th>Submitted</th><th>Status</th><th>Note</th><th>Actions</th></tr></thead>
+      <tbody>${data.map(req => `
+        <tr id="req-${req.id}">
+          <td>${req.businessName || req.siteSlug}</td>
+          <td class="req-desc">${req.description}</td>
+          <td>${new Date(req.createdAt).toLocaleDateString()}</td>
+          <td>
+            <select class="status-select" onchange="updateReq('${req.id}', this.value, null)">
+              <option value="pending" ${req.status==='pending'?'selected':''}>pending</option>
+              <option value="in-progress" ${req.status==='in-progress'?'selected':''}>in-progress</option>
+              <option value="done" ${req.status==='done'?'selected':''}>done</option>
+            </select>
+          </td>
+          <td><input class="note-input" value="${req.note || ''}" placeholder="Resolution note…" onblur="updateReq('${req.id}', null, this.value)"></td>
+          <td><span class="badge badge-${req.status}">${req.status}</span></td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+  } catch (e) {
+    document.getElementById('requests-table').innerHTML = '<div style="color:#f87171">Error loading requests</div>';
+  }
+}
+
+async function updateReq(id, status, note) {
+  const body = {};
+  if (status) body.status = status;
+  if (note !== null) body.note = note;
+  await fetch(`/api/requests/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+
+async function loadUsers() {
+  const r = await fetch('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } });
+  const data = await r.json();
+  const tbody = document.getElementById('users-tbody');
+  const entries = Object.entries(data);
+  if (!entries.length) { tbody.innerHTML = '<tr><td colspan="4" style="color:#6b7280">No users yet</td></tr>'; return; }
+  tbody.innerHTML = entries.map(([u, d]) => `
+    <tr>
+      <td>${u}</td>
+      <td>${d.siteSlug || '<span style="color:#6b7280">none</span>'}</td>
+      <td><span class="badge badge-${d.role}">${d.role}</span></td>
+      <td>
+        <button class="btn btn-sm btn-info" onclick="editUser('${u}','${d.siteSlug||''}','${d.role}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteUser('${u}')">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function editUser(u, slug, role) {
+  document.getElementById('u-username').value = u;
+  document.getElementById('u-password').value = '';
+  document.getElementById('u-slug').value = slug;
+  document.getElementById('u-role').value = role;
+  document.getElementById('u-password').focus();
+}
+
+async function createUser() {
+  const username = document.getElementById('u-username').value.trim();
+  const password = document.getElementById('u-password').value;
+  const siteSlug = document.getElementById('u-slug').value.trim();
+  const role = document.getElementById('u-role').value;
+  if (!username || !password) { alert('Username and password required'); return; }
+  const r = await fetch('/api/admin/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ username, password, siteSlug, role }),
+  });
+  const d = await r.json();
+  const status = document.getElementById('user-status');
+  if (r.ok) {
+    status.textContent = `✓ User "${username}" saved`;
+    ['u-username','u-password','u-slug'].forEach(id => document.getElementById(id).value = '');
+    loadUsers();
+  } else {
+    status.style.color = '#f87171';
+    status.textContent = '⚠ ' + d.error;
+  }
+}
+
+async function deleteUser(u) {
+  if (!confirm(`Delete user "${u}"?`)) return;
+  await fetch(`/api/admin/users/${u}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  loadUsers();
+}
+
+// ── Sites ─────────────────────────────────────────────────────────────────────
+
+async function loadSites() {
+  const r = await fetch('/api/admin/sites', { headers: { Authorization: `Bearer ${token}` } });
+  const data = await r.json();
+  const tbody = document.getElementById('sites-tbody');
+  const entries = Object.entries(data);
+  if (!entries.length) { tbody.innerHTML = '<tr><td colspan="6" style="color:#6b7280">No sites</td></tr>'; return; }
+  tbody.innerHTML = entries.map(([slug, s]) => `
+    <tr>
+      <td><strong>${s.business}</strong><br><span style="color:#6b7280;font-size:11px">${slug}</span></td>
+      <td>${s.city}</td>
+      <td>${s.category || ''}</td>
+      <td><a href="${s.renderUrl}" target="_blank">${s.renderUrl.replace('https://','')}</a></td>
+      <td><a href="https://github.com/${GH_ORG}/${s.githubRepo}/commits/main" target="_blank">history ↗</a></td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteSite('${slug}')">Remove</button></td>
+    </tr>
+  `).join('');
+}
+
+async function addSite() {
+  const slug = document.getElementById('s-slug').value.trim();
+  const business = document.getElementById('s-biz').value.trim();
+  const city = document.getElementById('s-city').value.trim();
+  const category = document.getElementById('s-cat').value.trim();
+  const renderUrl = document.getElementById('s-render').value.trim();
+  const githubRepo = document.getElementById('s-repo').value.trim();
+  if (!slug || !business || !renderUrl || !githubRepo) { alert('slug, name, render URL, and repo required'); return; }
+  const r = await fetch('/api/admin/sites', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ slug, business, city, category, renderUrl, githubRepo }),
+  });
+  const d = await r.json();
+  const status = document.getElementById('site-status');
+  if (r.ok) {
+    status.textContent = `✓ Site "${business}" added`;
+    ['s-slug','s-biz','s-city','s-cat','s-render','s-repo'].forEach(id => document.getElementById(id).value = '');
+    loadSites();
+  } else {
+    status.style.color = '#f87171';
+    status.textContent = '⚠ ' + d.error;
+  }
+}
+
+async function deleteSite(slug) {
+  if (!confirm(`Remove site "${slug}" from portal? (does not delete GitHub/Render)`)) return;
+  await fetch(`/api/admin/sites/${slug}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  loadSites();
+}
+
+function logout() { localStorage.clear(); location.href = '/'; }
+
+loadRequests();
+</script>
+</body>
+</html>

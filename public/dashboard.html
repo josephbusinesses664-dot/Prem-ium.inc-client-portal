@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Site — OpenClaw Portal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0618; color: #e2e8f0; font-family: system-ui, sans-serif; min-height: 100vh; }
+  header { background: #0f0a1e; border-bottom: 1px solid #2d1f5e; padding: 14px 24px; display: flex; align-items: center; gap: 14px; }
+  .logo { font-size: 20px; font-weight: 800; color: #a78bfa; text-decoration: none; }
+  .logo span { color: #e2e8f0; }
+  .user-info { margin-left: auto; font-size: 13px; color: #9ca3af; display: flex; align-items: center; gap: 12px; }
+  .logout { background: none; border: 1px solid #4c1d95; color: #a78bfa; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .logout:hover { background: #2d1f5e; }
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .site-header { display: flex; align-items: flex-start; gap: 20px; margin-bottom: 32px; flex-wrap: wrap; }
+  .site-info h1 { font-size: 26px; font-weight: 700; }
+  .site-info p { color: #9ca3af; margin-top: 4px; font-size: 14px; }
+  .actions { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; border: none; }
+  .btn-primary { background: #7c3aed; color: #fff; }
+  .btn-primary:hover { background: #6d28d9; }
+  .btn-secondary { background: #1e1033; color: #a78bfa; border: 1px solid #4c1d95; }
+  .btn-secondary:hover { background: #2d1f5e; }
+  .btn-danger { background: none; color: #f87171; border: 1px solid #7f1d1d; }
+  .btn-danger:hover { background: #7f1d1d22; }
+  .preview-wrap { background: #1e1033; border: 1px solid #2d1f5e; border-radius: 12px; overflow: hidden; margin-bottom: 32px; }
+  .preview-bar { background: #0f0a1e; padding: 10px 16px; font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 10px; }
+  .preview-bar .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .preview-bar .url { color: #4c1d95; background: #1e1033; padding: 4px 12px; border-radius: 6px; flex: 1; font-size: 12px; }
+  iframe { width: 100%; height: 600px; border: none; display: block; }
+  .section-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #a78bfa; }
+  .request-form { background: #1e1033; border: 1px solid #2d1f5e; border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+  textarea { width: 100%; background: #0f0a1e; border: 1px solid #4c1d95; border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px; resize: vertical; font-family: inherit; min-height: 80px; outline: none; }
+  textarea:focus { border-color: #7c3aed; }
+  .req-send { margin-top: 10px; background: #1d4ed8; color: #fff; border: none; padding: 9px 20px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .req-send:hover { background: #1e40af; }
+  .requests-list { display: flex; flex-direction: column; gap: 10px; }
+  .req-card { background: #1e1033; border: 1px solid #2d1f5e; border-radius: 10px; padding: 16px; }
+  .req-card .desc { font-size: 14px; margin-bottom: 8px; }
+  .req-card .meta { font-size: 12px; color: #6b7280; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .badge { padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .badge-pending { background: #451a03; color: #fbbf24; }
+  .badge-in-progress { background: #1e3a5f; color: #93c5fd; }
+  .badge-done { background: #052e16; color: #86efac; }
+  .note-text { font-size: 12px; color: #86efac; margin-top: 6px; font-style: italic; }
+  .status-msg { font-size: 13px; margin-top: 8px; min-height: 18px; }
+  .github-link { font-size: 12px; color: #a78bfa; text-decoration: none; }
+  .github-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">Open<span>Claw</span></a>
+  <div class="user-info">
+    <span id="user-label">Loading…</span>
+    <button class="logout" onclick="logout()">Log out</button>
+  </div>
+</header>
+<main>
+  <div class="site-header">
+    <div class="site-info">
+      <h1 id="biz-name">Your Site</h1>
+      <p id="biz-info"></p>
+    </div>
+    <div class="actions">
+      <a id="view-live" class="btn btn-secondary" href="#" target="_blank">View Live Site ↗</a>
+      <a id="edit-mode" class="btn btn-primary" href="#">✏️ Enter Edit Mode</a>
+      <a id="github-history" class="btn btn-secondary" href="#" target="_blank">📋 Edit History</a>
+    </div>
+  </div>
+
+  <div class="preview-wrap">
+    <div class="preview-bar">
+      <div class="dot" style="background:#ef4444"></div>
+      <div class="dot" style="background:#f59e0b"></div>
+      <div class="dot" style="background:#22c55e"></div>
+      <span id="preview-url" class="url">Loading…</span>
+    </div>
+    <iframe id="site-iframe" title="Site preview" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+  </div>
+
+  <div class="section-title">Submit a Change Request</div>
+  <div class="request-form">
+    <p style="font-size:13px;color:#9ca3af;margin-bottom:12px">Describe any change you'd like — new content, layout updates, or anything complex. Prem will handle it and let you know when it's done.</p>
+    <textarea id="req-text" placeholder="e.g. Please add a phone number in the header, update the hero image, change business hours to Mon–Sat 9am–6pm…"></textarea>
+    <button class="req-send" onclick="sendRequest()">Send to Prem</button>
+    <div class="status-msg" id="req-status"></div>
+  </div>
+
+  <div class="section-title">Your Requests</div>
+  <div id="requests-list" class="requests-list">
+    <div style="color:#6b7280;font-size:14px">Loading…</div>
+  </div>
+</main>
+
+<script>
+const token = localStorage.getItem('oc_token');
+const slug = localStorage.getItem('oc_slug');
+const username = localStorage.getItem('oc_username');
+
+if (!token) location.href = '/login';
+
+document.getElementById('user-label').textContent = username || 'Client';
+
+async function init() {
+  try {
+    const r = await fetch(`/api/sites/${slug}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (r.status === 401) { logout(); return; }
+    const site = await r.json();
+
+    document.getElementById('biz-name').textContent = site.business;
+    document.getElementById('biz-info').textContent = `${site.city} · ${site.category}`;
+    document.getElementById('preview-url').textContent = site.renderUrl;
+    document.getElementById('site-iframe').src = site.renderUrl;
+    document.getElementById('view-live').href = site.renderUrl;
+    document.getElementById('edit-mode').href = `/preview/${slug}?token=${token}`;
+    document.getElementById('github-history').href = `https://github.com/josephbusinesses664-dot/${encodeURIComponent(site.githubRepo)}/commits/main`;
+    document.title = site.business + ' — OpenClaw Portal';
+  } catch (e) {
+    console.error(e);
+  }
+  loadRequests();
+}
+
+async function sendRequest() {
+  const desc = document.getElementById('req-text').value.trim();
+  if (!desc) return;
+  const status = document.getElementById('req-status');
+  status.style.color = '#e2e8f0';
+  status.textContent = 'Sending…';
+  try {
+    const r = await fetch('/api/requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ description: desc }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    status.style.color = '#86efac';
+    status.textContent = '✓ Sent! Prem will review it shortly.';
+    document.getElementById('req-text').value = '';
+    loadRequests();
+  } catch (e) {
+    status.style.color = '#f87171';
+    status.textContent = '⚠ ' + e.message;
+  }
+}
+
+async function loadRequests() {
+  try {
+    const r = await fetch('/api/requests', { headers: { Authorization: `Bearer ${token}` } });
+    const data = await r.json();
+    const el = document.getElementById('requests-list');
+    if (!data.length) { el.innerHTML = '<div style="color:#6b7280;font-size:14px">No requests yet.</div>'; return; }
+    el.innerHTML = data.map(req => `
+      <div class="req-card">
+        <div class="desc">${req.description}</div>
+        <div class="meta">
+          <span class="badge badge-${req.status}">${req.status}</span>
+          <span>${new Date(req.createdAt).toLocaleDateString()}</span>
+        </div>
+        ${req.note ? `<div class="note-text">💬 ${req.note}</div>` : ''}
+      </div>
+    `).join('');
+  } catch (e) {
+    document.getElementById('requests-list').innerHTML = '<div style="color:#f87171">Could not load requests</div>';
+  }
+}
+
+function logout() {
+  localStorage.clear();
+  location.href = '/';
+}
+
+init();
+</script>
+</body>
+</html>
