@@ -189,14 +189,21 @@ async function proxyHandler(req, res) {
   }
 }
 
-// Inject sequential data-oc-id on all editable elements
+// Inject sequential data-oc-id on all editable elements (every direct-text-bearing element + all images)
 function injectOcIds($) {
-  const EDITABLE = 'h1, h2, h3, h4, p, li, a[href^="tel:"], a[href^="mailto:"], .brand, .eyebrow, .sub, .card-title, .rv-text, .rv-author, .stat-num, .about-copy, td, span.label, img';
+  const SKIP = new Set(['script','style','head','meta','link','noscript','template','svg','path','br','hr','input','textarea','select','button']);
   let idx = 1;
-  $(EDITABLE).each((_, el) => {
-    if (!$(el).attr('data-oc-id')) {
-      $(el).attr('data-oc-id', `oc-${String(idx).padStart(4, '0')}`);
-      idx++;
+  $('body *').each((_, el) => {
+    const tag = el.tagName?.toLowerCase();
+    if (!tag || SKIP.has(tag)) return;
+    const $el = $(el);
+    if (tag === 'img') {
+      if (!$el.attr('data-oc-id')) { $el.attr('data-oc-id', `oc-${String(idx).padStart(4, '0')}`); idx++; }
+      return;
+    }
+    const hasDirectText = $el.contents().filter((_, n) => n.type === 'text' && n.data.trim().length > 0).length > 0;
+    if (hasDirectText && !$el.attr('data-oc-id')) {
+      $el.attr('data-oc-id', `oc-${String(idx).padStart(4, '0')}`); idx++;
     }
   });
 }
