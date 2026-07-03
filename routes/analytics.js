@@ -85,7 +85,7 @@ Rules:
 - Be encouraging and helpful`;
 
     const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-70b-versatile',
+      model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: message },
@@ -97,7 +97,7 @@ Rules:
     const reply = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
     res.json({ reply });
   } catch (err) {
-    console.error('[analytics/chat] error:', err.message);
+    console.error('[analytics/chat] groq error:', err.message, err.status || '');
     res.json({ reply: 'Sorry, the assistant is temporarily unavailable.' });
   }
 });
