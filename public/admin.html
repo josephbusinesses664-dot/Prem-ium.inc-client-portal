@@ -51,7 +51,7 @@
 </head>
 <body>
 <header>
-  <a class="logo" href="/">Open<span>Claw</span></a>
+  <a class="logo" href="/">prem-ium<span>.inc</span></a>
   <div class="user-info">
     <span>Admin Panel</span>
     <button class="logout" onclick="logout()">Log out</button>
@@ -320,7 +320,12 @@ async function injectAll() {
     const r = await fetch('/api/admin/inject-ga-all', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error);
-    status.textContent = `✓ Done: ${d.done} injected, ${d.skipped} already had it, ${d.failed} failed`;
+    let msg = `✓ Done: ${d.done} injected, ${d.skipped} already had it, ${d.failed} failed`;
+    if (d.failed > 0 && d.details) {
+      const firstFail = d.details.find(x => x.failed);
+      if (firstFail) msg += ` — first error: ${firstFail.error}`;
+    }
+    status.textContent = msg;
     loadSites();
   } catch (err) {
     status.style.color = '#f87171';
