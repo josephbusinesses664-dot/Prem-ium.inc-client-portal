@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analytics — OpenClaw Portal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0618; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  header { background: #0f0a1e; border-bottom: 1px solid #2d1f5e; padding: 14px 24px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .logo { font-size: 20px; font-weight: 800; color: #a78bfa; text-decoration: none; }
+  .logo span { color: #e2e8f0; }
+  .back { color: #a78bfa; font-size: 13px; text-decoration: none; }
+  .back:hover { text-decoration: underline; }
+  .biz-label { font-weight: 600; font-size: 15px; margin-left: 8px; }
+  .user-info { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #9ca3af; }
+  .logout { background: none; border: 1px solid #4c1d95; color: #a78bfa; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+
+  .layout { display: flex; flex: 1; min-height: 0; }
+  .main-content { flex: 1; overflow-y: auto; padding: 28px 28px 40px; }
+  .chat-sidebar { width: 320px; border-left: 1px solid #2d1f5e; background: #0f0a1e; display: flex; flex-direction: column; flex-shrink: 0; }
+
+  /* Date range tabs */
+  .date-tabs { display: flex; gap: 8px; margin-bottom: 24px; align-items: center; }
+  .date-tab { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #2d1f5e; background: none; color: #9ca3af; }
+  .date-tab.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+  .date-tab:hover:not(.active) { border-color: #7c3aed; color: #a78bfa; }
+  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .page-sub { color: #6b7280; font-size: 13px; margin-bottom: 24px; }
+
+  /* KPI cards */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .kpi-card { background: #1e1033; border: 1px solid #2d1f5e; border-radius: 12px; padding: 20px; position: relative; }
+  .kpi-card:hover { border-color: #4c1d95; }
+  .kpi-label { font-size: 12px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; display: flex; align-items: center; gap: 4px; }
+  .kpi-value { font-size: 32px; font-weight: 800; color: #a78bfa; margin: 8px 0 6px; line-height: 1; }
+  .kpi-desc { font-size: 12px; color: #6b7280; line-height: 1.4; }
+  .info-btn { background: none; border: none; color: #4c1d95; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+  .tooltip { display: none; position: absolute; bottom: calc(100% + 6px); left: 0; right: 0; background: #2d1f5e; color: #e2e8f0; font-size: 12px; padding: 10px; border-radius: 8px; z-index: 10; line-height: 1.5; }
+  .kpi-card:hover .tooltip, .kpi-card:focus-within .tooltip { display: block; }
+
+  /* Mid row */
+  .mid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .panel { background: #1e1033; border: 1px solid #2d1f5e; border-radius: 12px; padding: 20px; }
+  .panel-title { font-size: 14px; font-weight: 700; color: #a78bfa; margin-bottom: 16px; }
+
+  /* Country bars */
+  .country-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; }
+  .country-name { width: 120px; flex-shrink: 0; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-wrap { flex: 1; background: #2d1f5e; border-radius: 4px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, #7c3aed, #a78bfa); border-radius: 4px; transition: width .4s; }
+  .country-count { width: 36px; text-align: right; color: #9ca3af; font-size: 12px; flex-shrink: 0; }
+
+  /* Device donut-style */
+  .device-row { display: flex; flex-direction: column; gap: 10px; }
+  .device-item { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .device-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .device-name { flex: 1; text-transform: capitalize; }
+  .device-pct { font-weight: 700; color: #a78bfa; }
+  .device-bar-wrap { width: 80px; background: #2d1f5e; border-radius: 4px; height: 6px; overflow: hidden; }
+  .device-bar-fill { height: 100%; border-radius: 4px; }
+
+  /* Pages table */
+  .pages-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .pages-table th { color: #6b7280; font-weight: 600; padding: 8px 0; border-bottom: 1px solid #2d1f5e; text-align: left; }
+  .pages-table td { padding: 9px 0; border-bottom: 1px solid #1a1133; color: #e2e8f0; }
+  .pages-table td:last-child { text-align: right; color: #a78bfa; font-weight: 700; }
+  .page-path { font-family: monospace; font-size: 12px; color: #c4b5fd; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+
+  /* Trend */
+  .trend-wrap { margin-bottom: 24px; }
+  .trend-bars { display: flex; gap: 3px; align-items: flex-end; height: 60px; }
+  .trend-bar { flex: 1; background: #4c1d95; border-radius: 2px 2px 0 0; min-height: 2px; transition: height .3s; cursor: default; }
+  .trend-bar:hover { background: #7c3aed; }
+  .trend-labels { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: #6b7280; }
+
+  /* Skeleton loading */
+  .skeleton { background: linear-gradient(90deg, #1e1033 25%, #2d1f5e 50%, #1e1033 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .skel-kpi { height: 100px; }
+  .skel-panel { height: 200px; }
+
+  /* Error / no-data */
+  .no-data { color: #6b7280; text-align: center; padding: 48px 20px; }
+  .no-data h3 { font-size: 18px; margin-bottom: 8px; color: #9ca3af; }
+  .no-data code { background: #1e1033; border: 1px solid #2d1f5e; padding: 12px 16px; border-radius: 8px; font-size: 12px; display: block; text-align: left; margin-top: 16px; white-space: pre; line-height: 1.6; }
+
+  /* Chat sidebar */
+  .chat-header { padding: 16px 18px; border-bottom: 1px solid #2d1f5e; font-weight: 700; font-size: 14px; color: #a78bfa; display: flex; align-items: center; gap: 8px; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .chat-msg { padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5; max-width: 90%; }
+  .chat-msg.user { background: #2d1f5e; color: #e2e8f0; align-self: flex-end; border-radius: 10px 10px 2px 10px; }
+  .chat-msg.bot { background: #1e1033; border: 1px solid #2d1f5e; color: #e2e8f0; align-self: flex-start; border-radius: 10px 10px 10px 2px; }
+  .chat-msg.bot.loading { color: #6b7280; font-style: italic; }
+  .chat-suggestions { padding: 0 16px 10px; display: flex; flex-direction: column; gap: 6px; }
+  .chat-suggestion { background: none; border: 1px solid #2d1f5e; color: #a78bfa; border-radius: 20px; padding: 6px 12px; font-size: 12px; cursor: pointer; text-align: left; }
+  .chat-suggestion:hover { background: #2d1f5e; }
+  .chat-input-row { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #2d1f5e; }
+  .chat-input { flex: 1; background: #1e1033; border: 1px solid #4c1d95; border-radius: 20px; padding: 8px 14px; color: #e2e8f0; font-size: 13px; outline: none; }
+  .chat-input:focus { border-color: #7c3aed; }
+  .chat-send { background: #7c3aed; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .chat-send:hover { background: #6d28d9; }
+  .chat-send:disabled { background: #4c1d95; cursor: not-allowed; }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .chat-sidebar { width: 100%; height: 360px; border-left: none; border-top: 1px solid #2d1f5e; }
+    .mid-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">Open<span>Claw</span></a>
+  <a class="back" href="/dashboard">← Dashboard</a>
+  <span class="biz-label" id="biz-label">Analytics</span>
+  <div class="user-info">
+    <span id="user-label"></span>
+    <button class="logout" onclick="logout()">Log out</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Main analytics content -->
+  <div class="main-content">
+    <div class="date-tabs">
+      <button class="date-tab" onclick="setRange('7daysAgo', this)">7 Days</button>
+      <button class="date-tab active" onclick="setRange('30daysAgo', this)">30 Days</button>
+      <button class="date-tab" onclick="setRange('90daysAgo', this)">90 Days</button>
+    </div>
+
+    <div id="content">
+      <!-- KPI row skeleton -->
+      <div class="kpi-row" id="kpi-row">
+        <div class="skeleton skel-kpi"></div>
+        <div class="skeleton skel-kpi"></div>
+        <div class="skeleton skel-kpi"></div>
+        <div class="skeleton skel-kpi"></div>
+      </div>
+      <!-- Mid row skeleton -->
+      <div class="mid-row">
+        <div class="skeleton skel-panel"></div>
+        <div class="skeleton skel-panel"></div>
+      </div>
+      <div class="skeleton skel-panel"></div>
+    </div>
+  </div>
+
+  <!-- Chat sidebar -->
+  <div class="chat-sidebar">
+    <div class="chat-header">🤖 Analytics Assistant</div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-msg bot">Hi! I can help explain your website analytics in plain English. Try asking me anything!</div>
+    </div>
+    <div class="chat-suggestions" id="suggestions">
+      <button class="chat-suggestion" onclick="askQuestion(this.textContent)">How is my site performing?</button>
+      <button class="chat-suggestion" onclick="askQuestion(this.textContent)">Where are my visitors from?</button>
+      <button class="chat-suggestion" onclick="askQuestion(this.textContent)">What does bounce rate mean?</button>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" placeholder="Ask about your analytics…" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" id="chat-send" onclick="sendChat()">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('oc_token');
+const slug = localStorage.getItem('oc_slug');
+const username = localStorage.getItem('oc_username');
+if (!token) location.href = '/login?next=/analytics';
+document.getElementById('user-label').textContent = username || '';
+
+let currentData = null;
+let currentRange = '30daysAgo';
+
+const DEVICE_COLORS = { mobile: '#7c3aed', desktop: '#3b82f6', tablet: '#10b981' };
+
+const TOOLTIPS = {
+  users: 'The number of unique people who visited your website in this period.',
+  sessions: 'Total visits to your site — one person can have multiple sessions if they visit on different days.',
+  pageviews: 'How many pages were viewed in total across all visits.',
+  bounceRate: 'Percentage of visitors who left after viewing just one page. Lower is generally better.',
+  avgSessionDuration: 'Average time visitors spent on your site per visit. Longer usually means more engagement.',
+};
+
+async function load() {
+  try {
+    const r = await fetch(`/api/analytics/${slug}?period=${currentRange}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (r.status === 401) { logout(); return; }
+    const data = await r.json();
+
+    if (data.error) {
+      showError(data.error, data.hint);
+      return;
+    }
+
+    currentData = data;
+    document.getElementById('biz-label').textContent = data.site?.business || 'Analytics';
+    document.title = (data.site?.business || 'Analytics') + ' — OpenClaw';
+    render(data);
+  } catch (err) {
+    showError('Could not load analytics data', '');
+  }
+}
+
+function showError(msg, hint) {
+  document.getElementById('content').innerHTML = `
+    <div class="no-data">
+      <h3>Analytics not available yet</h3>
+      <p>${msg}</p>
+      ${hint ? `<code>${hint}</code>` : ''}
+      <p style="margin-top:16px;font-size:12px;color:#6b7280">Once the GA4 snippet is injected into your site and visitors arrive, data appears here within 24–48 hours.</p>
+    </div>`;
+}
+
+function fmtNum(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return String(n);
+}
+function fmtDuration(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.round(s % 60);
+  return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
+}
+
+function render(d) {
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <!-- KPI Cards -->
+    <div class="kpi-row" id="kpi-row">
+      ${kpiCard('Users', fmtNum(d.users), 'Unique visitors to your site', TOOLTIPS.users)}
+      ${kpiCard('Sessions', fmtNum(d.sessions), 'Total visits (repeat visitors count too)', TOOLTIPS.sessions)}
+      ${kpiCard('Page Views', fmtNum(d.pageviews), 'Total pages viewed across all visits', TOOLTIPS.pageviews)}
+      ${kpiCard('Bounce Rate', d.bounceRate + '%', 'Visitors who left after one page', TOOLTIPS.bounceRate)}
+    </div>
+
+    <!-- Trend -->
+    ${d.trend?.length ? trendChart(d.trend) : ''}
+
+    <!-- Mid row -->
+    <div class="mid-row">
+      <!-- Countries -->
+      <div class="panel">
+        <div class="panel-title">🌍 Visitor Locations</div>
+        ${countriesPanel(d.topCountries)}
+        ${d.topCities?.length ? `<div style="margin-top:14px;font-size:12px;color:#6b7280">
+          Top cities: ${d.topCities.map(c => `<span style="color:#a78bfa">${c.city}</span> (${c.users})`).join(', ')}
+        </div>` : ''}
+      </div>
+      <!-- Devices -->
+      <div class="panel">
+        <div class="panel-title">📱 Devices</div>
+        ${devicesPanel(d.deviceBreakdown)}
+      </div>
+    </div>
+
+    <!-- Top pages -->
+    ${d.topPages?.length ? `
+    <div class="panel">
+      <div class="panel-title">📄 Top Pages</div>
+      <table class="pages-table">
+        <thead><tr><th>Page</th><th style="text-align:right">Views</th></tr></thead>
+        <tbody>
+          ${d.topPages.map(p => `<tr><td><span class="page-path">${p.path}</span></td><td>${p.views.toLocaleString()}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : ''}
+  `;
+}
+
+function kpiCard(label, value, desc, tooltip) {
+  return `<div class="kpi-card" tabindex="0">
+    <div class="kpi-label">${label} <button class="info-btn" tabindex="-1">ℹ️</button></div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-desc">${desc}</div>
+    <div class="tooltip">${tooltip}</div>
+  </div>`;
+}
+
+function countriesPanel(countries) {
+  if (!countries?.length) return '<div style="color:#6b7280;font-size:13px">No location data yet</div>';
+  const max = Math.max(...countries.map(c => c.users), 1);
+  return countries.map(c => `
+    <div class="country-row">
+      <span class="country-name">${c.country}</span>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${Math.round(c.users/max*100)}%"></div></div>
+      <span class="country-count">${c.users}</span>
+    </div>`).join('');
+}
+
+function devicesPanel(devices) {
+  if (!devices?.length) return '<div style="color:#6b7280;font-size:13px">No device data yet</div>';
+  const total = devices.reduce((s, d) => s + d.users, 0) || 1;
+  const colors = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b'];
+  return `<div class="device-row">${devices.map((d, i) => {
+    const pct = Math.round(d.users / total * 100);
+    const color = DEVICE_COLORS[d.device?.toLowerCase()] || colors[i % colors.length];
+    return `<div class="device-item">
+      <div class="device-dot" style="background:${color}"></div>
+      <span class="device-name">${d.device}</span>
+      <div class="device-bar-wrap"><div class="device-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <span class="device-pct">${pct}%</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function trendChart(trend) {
+  const maxU = Math.max(...trend.map(t => t.users), 1);
+  const bars = trend.slice(-20).map(t => {
+    const h = Math.max(4, Math.round(t.users / maxU * 56));
+    return `<div class="trend-bar" style="height:${h}px" title="${t.date}: ${t.users} users"></div>`;
+  }).join('');
+  const dates = trend.slice(-20);
+  const startDate = dates[0]?.date.replace(/(\d{4})(\d{2})(\d{2})/, '$2/$3') || '';
+  const endDate = dates[dates.length-1]?.date.replace(/(\d{4})(\d{2})(\d{2})/, '$2/$3') || '';
+  return `<div class="panel trend-wrap" style="margin-bottom:24px">
+    <div class="panel-title">📈 Daily Visitors</div>
+    <div class="trend-bars">${bars}</div>
+    <div class="trend-labels"><span>${startDate}</span><span>${endDate}</span></div>
+  </div>`;
+}
+
+function setRange(range, btn) {
+  currentRange = range;
+  document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  // Show skeleton
+  document.getElementById('content').innerHTML = `
+    <div class="kpi-row">${Array(4).fill('<div class="skeleton skel-kpi"></div>').join('')}</div>
+    <div class="mid-row"><div class="skeleton skel-panel"></div><div class="skeleton skel-panel"></div></div>
+    <div class="skeleton skel-panel" style="margin-top:16px"></div>`;
+  load();
+}
+
+// ── Chatbot ───────────────────────────────────────────────────────────────────
+
+function askQuestion(q) {
+  document.getElementById('chat-input').value = q;
+  document.getElementById('suggestions').style.display = 'none';
+  sendChat();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  const messages = document.getElementById('chat-messages');
+  messages.innerHTML += `<div class="chat-msg user">${escHtml(msg)}</div>`;
+
+  const loadingId = 'bot-' + Date.now();
+  messages.innerHTML += `<div class="chat-msg bot loading" id="${loadingId}">Thinking…</div>`;
+  messages.scrollTop = messages.scrollHeight;
+
+  const sendBtn = document.getElementById('chat-send');
+  sendBtn.disabled = true;
+
+  try {
+    const r = await fetch(`/api/analytics/${slug}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        message: msg,
+        analyticsSnapshot: currentData ? {
+          users: currentData.users,
+          sessions: currentData.sessions,
+          pageviews: currentData.pageviews,
+          bounceRate: currentData.bounceRate,
+          avgSessionDuration: currentData.avgSessionDuration,
+          topCountries: currentData.topCountries?.slice(0, 5),
+          topCities: currentData.topCities?.slice(0, 3),
+          deviceBreakdown: currentData.deviceBreakdown,
+          period: currentRange,
+        } : null,
+      }),
+    });
+    const data = await r.json();
+    const el = document.getElementById(loadingId);
+    if (el) { el.textContent = data.reply || 'Sorry, no response.'; el.classList.remove('loading'); }
+  } catch {
+    const el = document.getElementById(loadingId);
+    if (el) { el.textContent = 'Could not reach the assistant.'; el.classList.remove('loading'); }
+  } finally {
+    sendBtn.disabled = false;
+    messages.scrollTop = messages.scrollHeight;
+  }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function logout() { localStorage.clear(); location.href = '/'; }
+
+load();
+</script>
+</body>
+</html>

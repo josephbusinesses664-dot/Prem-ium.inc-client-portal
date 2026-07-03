@@ -96,7 +96,11 @@
 
 <!-- Sites panel -->
 <div id="panel-sites" class="panel">
-  <div class="section-title">All Sites</div>
+  <div class="section-title" style="display:flex;align-items:center;gap:14px">
+    All Sites
+    <button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="injectAll()">📊 Inject GA Tags — All Sites</button>
+    <span id="inject-all-status" style="font-size:12px;color:#86efac"></span>
+  </div>
   <div class="form-row">
     <div><label>Slug</label><input id="s-slug" placeholder="abc123"></div>
     <div><label>Business Name</label><input id="s-biz" placeholder="CBS Plumbing"></div>
@@ -252,8 +256,9 @@ async function loadSites() {
       <td>${s.category || ''}</td>
       <td><a href="${s.renderUrl}" target="_blank">${s.renderUrl.replace('https://','')}</a></td>
       <td><a href="https://github.com/${GH_ORG}/${s.githubRepo}/commits/main" target="_blank">history ↗</a></td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap">
+      <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <a class="btn btn-sm btn-primary" href="/preview/${slug}?token=${token}" target="_blank" style="text-decoration:none">✏️ Edit</a>
+        <button class="btn btn-sm btn-info" onclick="injectGa('${slug}', this)">📊 GA</button>
         <button class="btn btn-sm btn-danger" onclick="deleteSite('${slug}')">Remove</button>
       </td>
     </tr>
@@ -289,6 +294,38 @@ async function deleteSite(slug) {
   if (!confirm(`Remove site "${slug}" from portal? (does not delete GitHub/Render)`)) return;
   await fetch(`/api/admin/sites/${slug}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
   loadSites();
+}
+
+async function injectGa(slug, btn) {
+  const orig = btn.textContent;
+  btn.textContent = '…';
+  btn.disabled = true;
+  try {
+    const r = await fetch(`/api/admin/inject-ga/${slug}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    btn.textContent = d.skipped ? '✓ had it' : '✓ done';
+    btn.style.color = '#86efac';
+  } catch (err) {
+    btn.textContent = '⚠ err';
+    btn.style.color = '#f87171';
+    btn.title = err.message;
+  }
+}
+
+async function injectAll() {
+  const status = document.getElementById('inject-all-status');
+  status.textContent = 'Injecting… (this takes ~1 min for all sites)';
+  try {
+    const r = await fetch('/api/admin/inject-ga-all', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    status.textContent = `✓ Done: ${d.done} injected, ${d.skipped} already had it, ${d.failed} failed`;
+    loadSites();
+  } catch (err) {
+    status.style.color = '#f87171';
+    status.textContent = '⚠ ' + err.message;
+  }
 }
 
 function logout() { localStorage.clear(); location.href = '/'; }

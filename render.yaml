@@ -24,3 +24,13 @@ services:
         sync: false
       - key: DISCORD_RESULTS_CH
         value: "1516605432830103602"
+      - key: GOOGLE_CREDENTIALS
+        sync: false
+      - key: GA4_PROPERTY_ID
+        sync: false
+      - key: GA4_MEASUREMENT_ID
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: AGGREGATE_SECRET
+        sync: false

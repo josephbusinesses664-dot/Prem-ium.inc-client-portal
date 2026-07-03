@@ -66,7 +66,7 @@
   });
   reqForm.innerHTML = `
     <div style="font-weight:700;margin-bottom:12px;color:#93c5fd;font-size:15px">&#128203; Submit Change Request</div>
-    <div style="color:#9ca3af;font-size:12px;margin-bottom:10px">Describe what you'd like changed. Prem will handle it.</div>
+    <div style="color:#9ca3af;font-size:12px;margin-bottom:10px">Describe what you'd like changed. Our team will handle it.</div>
     <textarea id="oc-req-text" rows="5" placeholder="e.g. Add a new service section for AC repair, change the logo to the attached file..." style="width:100%;box-sizing:border-box;background:#0f0a1e;color:#e2e8f0;border:1px solid #1d4ed8;border-radius:6px;padding:8px;font-size:13px;resize:vertical;font-family:inherit"></textarea>
     <div style="display:flex;gap:8px;margin-top:12px">
       <button id="oc-req-send" style="flex:1;background:#1d4ed8;color:#fff;border:none;border-radius:6px;padding:9px;cursor:pointer;font-size:13px;font-weight:600">Send Request</button>
@@ -206,7 +206,7 @@
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
-      document.getElementById('oc-req-status').textContent = '✓ Request sent to Prem!';
+      document.getElementById('oc-req-status').textContent = '✓ Request submitted!';
       setTimeout(() => { reqForm.style.display = 'none'; }, 2500);
     } catch (err) {
       document.getElementById('oc-req-status').style.color = '#f87171';
