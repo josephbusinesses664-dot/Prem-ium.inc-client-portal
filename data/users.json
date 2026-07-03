@@ -3,5 +3,10 @@
     "passwordHash": "$2b$10$3uA55sjpyce33XtuN4B.aehPNE3JPhtTXDTsN/oxrY8NzhzKUSooa",
     "siteSlug": null,
     "role": "admin"
+  },
+  "sevascience": {
+    "passwordHash": "$2b$10$ehbZAeACUwiTrMdHpK6QLeUx.nk1fdbfrc8008Alr6I31ovAOZmHe",
+    "siteSlug": "8dxvb0",
+    "role": "client"
   }
 }
