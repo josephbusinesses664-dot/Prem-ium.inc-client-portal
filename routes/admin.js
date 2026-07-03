@@ -1,7 +1,37 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
+const https = require('https');
 const { requireAdmin } = require('../middleware/auth');
 const { readData, writeData, injectGaTag } = require('../lib/github-data');
+
+const GH_TOKEN = process.env.GITHUB_TOKEN;
+const GH_ORG = process.env.GITHUB_ORG || 'josephbusinesses664-dot';
+
+function ghApi(method, path, body) {
+  return new Promise((resolve, reject) => {
+    const data = body ? JSON.stringify(body) : null;
+    const req = https.request({
+      hostname: 'api.github.com', path,
+      method, headers: {
+        Authorization: `token ${GH_TOKEN}`,
+        'User-Agent': 'prem-ium-portal',
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+        ...(data ? { 'Content-Length': Buffer.byteLength(data) } : {})
+      }
+    }, res => {
+      let buf = '';
+      res.on('data', c => buf += c);
+      res.on('end', () => {
+        try { resolve({ status: res.statusCode, body: JSON.parse(buf) }); }
+        catch { resolve({ status: res.statusCode, body: buf }); }
+      });
+    });
+    req.on('error', reject);
+    if (data) req.write(data);
+    req.end();
+  });
+}
 
 // All admin routes require admin role
 router.use(requireAdmin);
@@ -99,6 +129,28 @@ router.patch('/sites/:slug', async (req, res) => {
     Object.assign(sites[req.params.slug], req.body);
     await writeData('sites', sites, `Update site: ${req.params.slug}`);
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/create-repo — create a new GitHub repo for a client site
+router.post('/create-repo', async (req, res) => {
+  const { repo, description } = req.body;
+  if (!repo) return res.status(400).json({ error: 'repo name required' });
+  if (!GH_TOKEN) return res.status(500).json({ error: 'GITHUB_TOKEN not set' });
+  try {
+    const result = await ghApi('POST', `/user/repos`, {
+      name: repo,
+      description: description || `${repo} preview site`,
+      private: false,
+      auto_init: true
+    });
+    if (result.status === 201) {
+      res.json({ ok: true, url: result.body.html_url });
+    } else {
+      res.status(result.status).json({ error: result.body.message || 'GitHub API error' });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

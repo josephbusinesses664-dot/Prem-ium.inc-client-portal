@@ -102,14 +102,18 @@
     <span id="inject-all-status" style="font-size:12px;color:#86efac"></span>
   </div>
   <div class="form-row">
-    <div><label>Slug</label><input id="s-slug" placeholder="abc123"></div>
-    <div><label>Business Name</label><input id="s-biz" placeholder="CBS Plumbing"></div>
+    <div><label>Business Name</label><input id="s-biz" placeholder="CBS Plumbing" oninput="autoFillSiteFields(this.value)"></div>
     <div><label>City</label><input id="s-city" placeholder="Santa Rosa, CA"></div>
     <div><label>Category</label><input id="s-cat" placeholder="Plumbing"></div>
-    <div><label>Render URL</label><input id="s-render" placeholder="https://preview-abc123.onrender.com" style="min-width:260px"></div>
-    <div><label>GitHub Repo</label><input id="s-repo" placeholder="preview-abc123"></div>
-    <div><label>&nbsp;</label><button class="btn btn-primary" onclick="addSite()">Add Site</button></div>
+    <div><label>GitHub Repo</label><input id="s-repo" placeholder="cbs-plumbing" style="min-width:200px"></div>
+    <div><label>Render URL</label><input id="s-render" placeholder="https://cbs-plumbing.onrender.com" style="min-width:260px"></div>
+    <div><label>Slug</label><input id="s-slug" placeholder="auto-generated"></div>
+    <div style="display:flex;gap:6px;align-items:flex-end">
+      <div><label>&nbsp;</label><button class="btn btn-info" onclick="createGithubRepo()">🔧 Create Repo</button></div>
+      <div><label>&nbsp;</label><button class="btn btn-primary" onclick="addSite()">Add Site</button></div>
+    </div>
   </div>
+  <div id="create-repo-status" class="status-msg" style="margin-bottom:8px"></div>
   <div id="site-status" class="status-msg"></div>
   <table>
     <thead><tr><th>Business</th><th>City</th><th>Category</th><th>Render</th><th>GitHub</th><th>Actions</th></tr></thead>
@@ -263,6 +267,45 @@ async function loadSites() {
       </td>
     </tr>
   `).join('');
+}
+
+function slugify(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+}
+
+function autoFillSiteFields(name) {
+  if (!name) return;
+  const slug = slugify(name);
+  const repoEl = document.getElementById('s-repo');
+  const renderEl = document.getElementById('s-render');
+  const slugEl = document.getElementById('s-slug');
+  if (!repoEl.dataset.manual) repoEl.value = slug;
+  if (!renderEl.dataset.manual) renderEl.value = `https://${slug}.onrender.com`;
+  if (!slugEl.dataset.manual) slugEl.value = slug.replace(/-/g, '').slice(0, 12);
+}
+
+['s-repo','s-render','s-slug'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', function() { this.dataset.manual = '1'; });
+});
+
+async function createGithubRepo() {
+  const repo = document.getElementById('s-repo').value.trim();
+  const business = document.getElementById('s-biz').value.trim();
+  const status = document.getElementById('create-repo-status');
+  if (!repo || !business) { status.style.color='#f87171'; status.textContent='Fill in Business Name and GitHub Repo first.'; return; }
+  status.style.color='#86efac'; status.textContent = `Creating ${repo}…`;
+  try {
+    const r = await fetch('/api/admin/create-repo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ repo, description: `${business} preview site` })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    status.textContent = `✓ Repo "${repo}" created: ${d.url}`;
+  } catch (err) {
+    status.style.color='#f87171'; status.textContent = '⚠ ' + err.message;
+  }
 }
 
 async function addSite() {
