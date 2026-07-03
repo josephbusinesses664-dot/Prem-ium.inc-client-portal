@@ -252,7 +252,10 @@ async function loadSites() {
       <td>${s.category || ''}</td>
       <td><a href="${s.renderUrl}" target="_blank">${s.renderUrl.replace('https://','')}</a></td>
       <td><a href="https://github.com/${GH_ORG}/${s.githubRepo}/commits/main" target="_blank">history ↗</a></td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteSite('${slug}')">Remove</button></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <a class="btn btn-sm btn-primary" href="/preview/${slug}?token=${token}" target="_blank" style="text-decoration:none">✏️ Edit</a>
+        <button class="btn btn-sm btn-danger" onclick="deleteSite('${slug}')">Remove</button>
+      </td>
     </tr>
   `).join('');
 }
