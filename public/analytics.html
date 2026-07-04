@@ -189,6 +189,8 @@ const token = localStorage.getItem('oc_token');
 const slug = localStorage.getItem('oc_slug');
 const username = localStorage.getItem('oc_username');
 if (!token) location.href = '/login?next=/analytics';
+// Analytics is per-site — admins without a linked site go to the admin panel
+if (localStorage.getItem('oc_role') === 'admin' && !slug) location.href = '/admin';
 document.getElementById('user-label').textContent = username || '';
 
 let currentData = null;

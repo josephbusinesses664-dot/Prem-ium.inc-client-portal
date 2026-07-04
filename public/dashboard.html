@@ -118,9 +118,12 @@
 <script>
 const token = localStorage.getItem('oc_token');
 const slug = localStorage.getItem('oc_slug');
+const role = localStorage.getItem('oc_role');
 const username = localStorage.getItem('oc_username');
 
 if (!token) location.href = '/login';
+// Admins have no site of their own — the dashboard is for clients
+if (role === 'admin' || !slug) location.href = '/admin';
 
 document.getElementById('user-label').textContent = username || 'Client';
 
@@ -129,9 +132,14 @@ async function init() {
     const r = await fetch(`/api/sites/${slug}`, { headers: { Authorization: `Bearer ${token}` } });
     if (r.status === 401) { logout(); return; }
     const site = await r.json();
+    if (!r.ok || !site.business) {
+      document.getElementById('biz-name').textContent = 'Site not found';
+      document.getElementById('biz-info').textContent = 'This account is not linked to a site — contact prem-ium.inc.';
+      return;
+    }
 
     document.getElementById('biz-name').textContent = site.business;
-    document.getElementById('biz-info').textContent = `${site.city} · ${site.category}`;
+    document.getElementById('biz-info').textContent = [site.city, site.category].filter(Boolean).join(' · ');
     document.getElementById('preview-url').textContent = site.renderUrl;
     document.getElementById('site-iframe').src = site.renderUrl;
     document.getElementById('view-live').href = site.renderUrl;
