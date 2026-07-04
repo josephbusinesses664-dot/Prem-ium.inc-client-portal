@@ -34,20 +34,22 @@
   .section-sub { font-size: 12px; color: #8a8378; margin-bottom: 14px; line-height: 1.45; }
 
   .preset-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
-  .preset { background: #ffffff; border: 2px solid #e7e2d8; border-radius: 10px; padding: 8px 4px 6px; text-align: center; cursor: pointer; transition: border-color .2s, transform .15s; }
+  .preset { background: #ffffff; border: 1.5px solid #ddd1bd; border-radius: 10px; padding: 8px 4px 6px; text-align: center; cursor: pointer; box-shadow: 0 1px 3px rgba(80,60,40,.08); transition: border-color .2s, transform .15s, box-shadow .15s; }
   .preset:hover { transform: translateY(-1px); border-color: rgba(176,86,61,.5); }
   .preset.sel { border-color: #b0563d; box-shadow: 0 0 12px rgba(176,86,61,.2); }
   .preset canvas { width: 56px; height: 53px; image-rendering: pixelated; }
   .preset .p-name { font-size: 11px; font-weight: 700; margin-top: 4px; color: #6b6459; }
 
-  #px-grid { display: grid; grid-template-columns: repeat(21, 15px); gap: 2px; user-select: none; touch-action: none; margin: 0 auto 12px; width: max-content; }
-  #px-grid div { width: 15px; height: 15px; background: #faf9f6; border-radius: 2px; cursor: crosshair; }
-  #px-grid div.on { background: var(--brick, #8b5cf6); }
+  #px-grid { display: grid; grid-template-columns: repeat(21, 15px); gap: 2px; user-select: none; touch-action: none; margin: 0 auto 12px; width: max-content; background: #efe7d8; padding: 10px; border-radius: 12px; border: 1px solid #ded1bd; box-shadow: inset 0 1px 4px rgba(80,60,40,.08); }
+  #px-grid div { width: 15px; height: 15px; background: #d9cdb8; border-radius: 2px; cursor: crosshair; transition: background .1s; }
+  #px-grid div:hover { background: #c9bba0; }
+  #px-grid div.on { background: var(--brick, #b0563d); }
+  #px-grid div.on:hover { background: var(--brick, #b0563d); filter: brightness(1.05); }
   .ctrl-label { font-size: 11px; font-weight: 700; color: #b0563d; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; display: block; }
   .swatches { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
   .sw { width: 24px; height: 24px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: transform .15s; }
   .sw:hover { transform: scale(1.12); }
-  .sw.sel { border-color: #fff; }
+  .sw.sel { border-color: #2b2721; box-shadow: 0 0 0 2px #faf9f6, 0 0 0 3px #2b2721; }
   input[type=color] { width: 30px; height: 26px; border: none; background: none; cursor: pointer; padding: 0; }
   input[type=text] { background: #faf9f6; border: 1px solid #e7e2d8; border-radius: 8px; padding: 8px 11px; color: #2b2721; font-size: 13px; width: 100%; outline: none; margin-bottom: 12px; transition: border-color .2s; }
   input[type=text]:focus { border-color: #b0563d; }
@@ -61,7 +63,7 @@
   .toggle { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #6b6459; cursor: pointer; margin-bottom: 12px; }
 
   .fx-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-  .fx-card { background: #ffffff; border: 2px solid #e7e2d8; border-radius: 10px; padding: 12px 10px; cursor: pointer; transition: border-color .2s, transform .15s; overflow: hidden; }
+  .fx-card { background: #ffffff; border: 1.5px solid #ddd1bd; border-radius: 10px; padding: 12px 10px; cursor: pointer; box-shadow: 0 1px 3px rgba(80,60,40,.08); transition: border-color .2s, transform .15s, box-shadow .15s; overflow: hidden; }
   .fx-card:hover { transform: translateY(-1px); border-color: rgba(176,86,61,.5); }
   .fx-card.sel { border-color: #b0563d; box-shadow: 0 0 12px rgba(176,86,61,.2); }
   .fx-sample { font-size: 15px; font-weight: 800; height: 22px; display: block; white-space: nowrap; overflow: hidden; }
