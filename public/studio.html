@@ -80,6 +80,11 @@
   .sec-btns button:disabled { opacity:.3; cursor:default; }
   .add-sec { width:100%; margin-top:6px; border:1px dashed var(--border); background:var(--bg2); color:var(--accent); font-weight:600; }
   .add-sec:hover { border-color:var(--accent); }
+  .tpl-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tpl-card { border:1px solid var(--border); background:var(--surface); border-radius:11px; padding:12px 10px; cursor:pointer; text-align:center; transition:.15s; }
+  .tpl-card:hover { border-color:var(--accent); transform:translateY(-1px); box-shadow:0 3px 12px rgba(80,60,40,.08); }
+  .tpl-card .ico { font-size:20px; }
+  .tpl-card .nm { font-size:12px; font-weight:600; margin-top:5px; }
 
   .soon { color:var(--muted); font-size:13.5px; line-height:1.55; }
   .soon a { color:var(--accent); font-weight:600; text-decoration:none; }
@@ -138,7 +143,11 @@
       <h2>Sections</h2>
       <p class="lead">Reorder, duplicate, or delete whole sections of your page. Hover a section in the preview for the same controls.</p>
       <div id="sec-list"></div>
-      <button class="btn add-sec" onclick="addSectionSoon()">+ Add section</button>
+      <button class="btn add-sec" onclick="openAddPicker()">+ Add section</button>
+      <div id="add-picker" style="display:none;margin-top:12px">
+        <div class="lead" style="margin:0 0 10px">Pick a section to add to the bottom of your page:</div>
+        <div class="tpl-grid" id="tpl-grid"></div>
+      </div>
       <div class="status" id="sec-status"></div>
     </div>
 
@@ -170,11 +179,10 @@
       <div class="status" id="d-status"></div>
     </div>
 
-    <!-- ANIMATIONS -->
+    <!-- ANIMATIONS (handled by full-bleed embed below) -->
     <div class="panel" id="panel-animations">
       <h2>Animations</h2>
-      <p class="lead">Opening animation &amp; text effects.</p>
-      <div class="soon">The animation studio lives at <a href="/customize">/customize</a> for now — it moves into this tab in the next update.</div>
+      <p class="lead">Opening animation &amp; text effects — loading…</p>
     </div>
   </aside>
 
@@ -192,6 +200,11 @@
   </div>
 </div>
 
+<!-- Animations tab: embeds the full animation studio (reuses /customize) -->
+<div id="anim-embed" style="display:none;flex:1;min-height:0">
+  <iframe id="anim-frame" style="width:100%;height:100%;border:none;display:block"></iframe>
+</div>
+
 <script>
 const token = localStorage.getItem('oc_token');
 // Admins can edit any site via ?slug=; clients use their own linked site.
@@ -203,9 +216,19 @@ const frame = document.getElementById('frame');
 let selEl = null, selId = null;
 
 /* ── Tabs ── */
+let animLoaded = false;
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  const tab = t.dataset.tab;
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
-  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + t.dataset.tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+  // Animations tab swaps the whole workspace for the embedded animation studio
+  const anim = tab === 'animations';
+  document.querySelector('.body').style.display = anim ? 'none' : 'flex';
+  document.getElementById('anim-embed').style.display = anim ? 'flex' : 'none';
+  if (anim && !animLoaded) {
+    animLoaded = true;
+    document.getElementById('anim-frame').src = `/customize?slug=${encodeURIComponent(slug)}&embed=1`;
+  }
 });
 
 /* ── Load site + canvas ── */
@@ -383,7 +406,47 @@ async function persist(path, body) {
     else setStatus('sec-status', 'Saved (test mode — not pushed).', 'ok');
   } catch (e) { setStatus('sec-status', e.message, 'err'); reload(); }
 }
-function addSectionSoon() { setStatus('sec-status', 'The section library arrives in the next update.', ''); }
+const TEMPLATES = [
+  ['hero', 'Hero banner', '◳'], ['about', 'About / story', '❦'], ['features', 'Feature grid', '⊞'],
+  ['menu', 'Menu / services', '☰'], ['gallery', 'Photo gallery', '▦'], ['testimonial', 'Testimonial', '❝'],
+  ['contact', 'Contact / hours', '⌖'], ['cta', 'Call to action', '➤'],
+];
+let pickerBuilt = false;
+function openAddPicker() {
+  const box = document.getElementById('add-picker');
+  const show = box.style.display === 'none';
+  box.style.display = show ? 'block' : 'none';
+  if (show && !pickerBuilt) {
+    pickerBuilt = true;
+    document.getElementById('tpl-grid').innerHTML = TEMPLATES.map(([k, name, ico]) =>
+      `<div class="tpl-card" onclick="addSection('${k}')"><div class="ico">${ico}</div><div class="nm">${name}</div></div>`).join('');
+  }
+}
+async function addSection(template) {
+  setStatus('sec-status', 'Adding section…');
+  const secs = sectionNodes();
+  const afterSectionId = secs.length ? secs[secs.length - 1].getAttribute('data-oc-sec') : null;
+  try {
+    const d = await api('section/add', { template, afterSectionId });
+    if (d.dryRun && d.html) {
+      // optimistic insert at end of container
+      const dc = doc();
+      const main = dc.body.querySelector(':scope > main');
+      const container = (main && dc.body.children.length <= 2) ? main : dc.body;
+      const tpl = dc.createElement('template'); tpl.innerHTML = d.html;
+      container.appendChild(tpl.content.firstElementChild);
+      decorate();
+      if (designLive) runPreview();
+      const el = getSec('sec-' + String(sectionNodes().length).padStart(3, '0'));
+      if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      setStatus('sec-status', 'Added (test mode — not pushed).', 'ok');
+    } else {
+      setStatus('sec-status', 'Added & published. Reloading…', 'ok');
+      reload();
+    }
+    document.getElementById('add-picker').style.display = 'none';
+  } catch (e) { setStatus('sec-status', e.message, 'err'); }
+}
 
 /* Section hover toolbar (drawn inside the iframe) */
 let hoverBar = null;

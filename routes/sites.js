@@ -272,6 +272,61 @@ router.post('/:slug/section/remove', requireSiteAccess, (req, res) =>
     el.remove();
   }));
 
+// ── Section template library (studio "+ Add section") ──────────────────────────
+// Self-contained, theme-aware snippets: inline styles reference --oc-* vars (set
+// by the Design tab / new sites) with sensible fallbacks so they look good anywhere.
+
+const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='400'%20height='300'%3E%3Crect%20width='400'%20height='300'%20fill='%23e8e3da'/%3E%3Ctext%20x='200'%20y='158'%20font-family='sans-serif'%20font-size='17'%20fill='%239a8f80'%20text-anchor='middle'%3EYour%20photo%3C/text%3E%3C/svg%3E";
+const _h = 'font-family:var(--oc-heading-font,Georgia),serif';
+const _card = 'background:#fff;border:1px solid var(--oc-border,#ececec);border-radius:14px;padding:24px';
+
+const SECTION_TEMPLATES = {
+  hero: `<section style="padding:84px 24px;text-align:center;background:var(--oc-surface,#faf9f6)"><div style="max-width:760px;margin:0 auto"><h1 style="${_h};font-size:clamp(32px,6vw,54px);margin:0 0 16px;color:var(--oc-text,#222)">Your headline here</h1><p style="font-size:18px;line-height:1.6;color:var(--oc-text,#555);margin:0 0 28px">A short, compelling sentence about your business goes right here.</p><a href="#" style="display:inline-block;background:var(--oc-accent,#b0563d);color:var(--oc-accent-ink,#fff);padding:14px 30px;border-radius:10px;text-decoration:none;font-weight:600">Get started</a></div></section>`,
+  about: `<section style="padding:72px 24px;background:#fff"><div style="max-width:720px;margin:0 auto"><p style="text-transform:uppercase;letter-spacing:.08em;font-size:13px;font-weight:700;color:var(--oc-accent,#b0563d);margin:0 0 12px">Our story</p><h2 style="${_h};font-size:30px;margin:0 0 16px;color:var(--oc-text,#222)">A little about us</h2><p style="font-size:16px;line-height:1.7;color:var(--oc-text,#444)">Tell your customers who you are, what you do, and why you do it. Two or three warm, honest sentences work best here.</p></div></section>`,
+  features: `<section style="padding:72px 24px;background:var(--oc-surface,#faf9f6)"><div style="max-width:1000px;margin:0 auto"><h2 style="${_h};font-size:28px;text-align:center;margin:0 0 40px;color:var(--oc-text,#222)">What we offer</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:22px"><div style="${_card}"><h3 style="${_h};margin:0 0 8px;color:var(--oc-text,#222)">Feature one</h3><p style="color:var(--oc-text,#555);line-height:1.6;margin:0">Describe this feature in a sentence or two.</p></div><div style="${_card}"><h3 style="${_h};margin:0 0 8px;color:var(--oc-text,#222)">Feature two</h3><p style="color:var(--oc-text,#555);line-height:1.6;margin:0">Describe this feature in a sentence or two.</p></div><div style="${_card}"><h3 style="${_h};margin:0 0 8px;color:var(--oc-text,#222)">Feature three</h3><p style="color:var(--oc-text,#555);line-height:1.6;margin:0">Describe this feature in a sentence or two.</p></div></div></div></section>`,
+  menu: `<section style="padding:72px 24px;background:#fff"><div style="max-width:720px;margin:0 auto"><h2 style="${_h};font-size:28px;text-align:center;margin:0 0 32px;color:var(--oc-text,#222)">Menu</h2><div style="display:flex;flex-direction:column;gap:16px"><div style="display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--oc-border,#ececec);padding-bottom:14px"><div><h3 style="${_h};margin:0 0 4px;font-size:18px;color:var(--oc-text,#222)">Item name</h3><p style="margin:0;color:var(--oc-text,#666)">Short description of the dish or service.</p></div><span style="font-weight:700;color:var(--oc-accent,#b0563d)">$0</span></div><div style="display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--oc-border,#ececec);padding-bottom:14px"><div><h3 style="${_h};margin:0 0 4px;font-size:18px;color:var(--oc-text,#222)">Item name</h3><p style="margin:0;color:var(--oc-text,#666)">Short description of the dish or service.</p></div><span style="font-weight:700;color:var(--oc-accent,#b0563d)">$0</span></div></div></div></section>`,
+  gallery: `<section style="padding:72px 24px;background:var(--oc-surface,#faf9f6)"><div style="max-width:1000px;margin:0 auto"><h2 style="${_h};font-size:28px;text-align:center;margin:0 0 32px;color:var(--oc-text,#222)">Gallery</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px"><img src="${PLACEHOLDER_IMG}" alt="Gallery photo" style="width:100%;height:210px;object-fit:cover;border-radius:12px"><img src="${PLACEHOLDER_IMG}" alt="Gallery photo" style="width:100%;height:210px;object-fit:cover;border-radius:12px"><img src="${PLACEHOLDER_IMG}" alt="Gallery photo" style="width:100%;height:210px;object-fit:cover;border-radius:12px"></div></div></section>`,
+  testimonial: `<section style="padding:72px 24px;background:#fff;text-align:center"><div style="max-width:680px;margin:0 auto"><p style="${_h};font-size:24px;line-height:1.5;color:var(--oc-text,#222);margin:0 0 18px">“A glowing customer quote goes right here — it builds trust fast.”</p><p style="font-weight:600;color:var(--oc-accent,#b0563d);margin:0">— Happy Customer</p></div></section>`,
+  contact: `<section style="padding:72px 24px;background:var(--oc-surface,#faf9f6)"><div style="max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:32px"><div><h3 style="${_h};font-size:20px;margin:0 0 10px;color:var(--oc-text,#222)">Visit us</h3><p style="color:var(--oc-text,#555);line-height:1.7;margin:0">123 Main Street<br>Your City, ST 00000</p></div><div><h3 style="${_h};font-size:20px;margin:0 0 10px;color:var(--oc-text,#222)">Hours</h3><p style="color:var(--oc-text,#555);line-height:1.7;margin:0">Mon–Fri: 9am – 6pm<br>Sat–Sun: 10am – 4pm</p></div></div></section>`,
+  cta: `<section style="padding:64px 24px;text-align:center;background:var(--oc-accent,#b0563d)"><div style="max-width:640px;margin:0 auto"><h2 style="${_h};font-size:30px;color:var(--oc-accent-ink,#fff);margin:0 0 14px">Ready to get started?</h2><a href="#" style="display:inline-block;background:var(--oc-accent-ink,#fff);color:var(--oc-accent,#b0563d);padding:13px 28px;border-radius:10px;text-decoration:none;font-weight:700">Contact us</a></div></section>`,
+};
+
+router.post('/:slug/section/add', requireSiteAccess, async (req, res) => {
+  const { slug } = req.params;
+  const { template, afterSectionId } = req.body;
+  const tpl = SECTION_TEMPLATES[template];
+  if (!tpl) return res.status(400).json({ error: 'Unknown section template' });
+  try {
+    if (DRY()) return res.json({ ok: true, dryRun: true, html: tpl });
+
+    const sites = await readData('sites');
+    const site = sites?.[slug];
+    if (!site) return res.status(404).json({ error: 'Site not found' });
+    const { html, sha } = await getSiteHTML(site.githubRepo);
+    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
+
+    const $ = cheerio.load(html, { decodeEntities: false });
+    injectOcSecs($);
+    const anchor = afterSectionId ? $(`[data-oc-sec="${afterSectionId}"]`) : null;
+    if (anchor && anchor.length) anchor.after('\n' + tpl);
+    else {
+      const body = $('body');
+      const main = body.children('main');
+      (main.length === 1 ? main : body).append('\n' + tpl);
+    }
+    $('[data-oc-sec]').removeAttr('data-oc-sec');
+    $('[data-oc-id]').removeAttr('data-oc-id');
+
+    const result = await putSiteHTML(site.githubRepo, $.html(), sha, `Client added a "${template}" section [${req.user.username}]: ${site.business}`);
+    const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
+    await discord.notify(`➕ **${site.business}** — \`${req.user.username}\` added a ${template} section\n📝 ${commitUrl}`);
+    res.json({ ok: true, commitUrl });
+  } catch (err) {
+    console.error('[sites] section add error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Design / theme (studio Design tab) ─────────────────────────────────────────
 // Injects one managed <style id="oc-theme"> block (between markers) into <head>.
 // Fonts apply reliably everywhere; colors set --oc-* vars (full effect on sites
