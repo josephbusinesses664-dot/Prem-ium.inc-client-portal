@@ -83,6 +83,16 @@
 
   .soon { color:var(--muted); font-size:13.5px; line-height:1.55; }
   .soon a { color:var(--accent); font-weight:600; text-decoration:none; }
+  select { width:100%; font-family:inherit; font-size:13.5px; padding:9px 11px; border:1px solid var(--border); border-radius:9px; background:var(--bg); color:var(--text); outline:none; cursor:pointer; }
+  select:focus { border-color:var(--accent); }
+  .swatches { display:flex; gap:7px; flex-wrap:wrap; align-items:center; }
+  .sw { width:26px; height:26px; border-radius:7px; cursor:pointer; border:2px solid transparent; transition:transform .14s; }
+  .sw:hover { transform:scale(1.12); }
+  .sw.sel { border-color:var(--text); }
+  input[type=color] { width:34px; height:28px; border:1px solid var(--border); border-radius:7px; background:none; cursor:pointer; padding:2px; }
+  .tog { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); margin-top:10px; cursor:pointer; }
+  .tog .tip { color:var(--muted); font-size:12px; }
+  .crow { display:flex; align-items:center; justify-content:space-between; font-size:13px; margin-top:8px; }
 </style>
 </head>
 <body>
@@ -135,8 +145,29 @@
     <!-- DESIGN -->
     <div class="panel" id="panel-design">
       <h2>Design</h2>
-      <p class="lead">Global colors &amp; fonts for your whole site.</p>
-      <div class="soon">Coming in the next update — you'll be able to change your site's color palette and fonts here, with a live preview.</div>
+      <p class="lead">Global colors &amp; fonts for your whole site. Changes preview live on the right.</p>
+
+      <label class="field">Heading font</label>
+      <select id="d-hfont"></select>
+      <label class="field">Body font</label>
+      <select id="d-bfont"></select>
+
+      <label class="field">Accent color</label>
+      <div class="swatches" id="d-accent-sw"></div>
+      <label class="tog"><input type="checkbox" id="d-accentOn" checked> Use accent on buttons &amp; links</label>
+
+      <label class="field">Page background &amp; text</label>
+      <label class="tog"><input type="checkbox" id="d-baseOn"> Apply to page <span class="tip">(full effect on newer sites)</span></label>
+      <div id="d-base-rows" style="opacity:.5;pointer-events:none">
+        <div class="crow"><span>Background</span><input type="color" id="d-bg" value="#ffffff"></div>
+        <div class="crow"><span>Text</span><input type="color" id="d-text" value="#222222"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-solid" onclick="applyTheme()">Apply to my site</button>
+        <button class="btn btn-ghost" onclick="resetTheme()">Reset</button>
+      </div>
+      <div class="status" id="d-status"></div>
     </div>
 
     <!-- ANIMATIONS -->
@@ -186,13 +217,18 @@ async function boot() {
     document.getElementById('biz').textContent = site.business || 'your site';
     document.getElementById('canvas-url').textContent = site.renderUrl || '';
   } catch (e) {}
+  initDesign();
   frame.src = `/preview/${slug}?token=${encodeURIComponent(token)}&raw=1&canvas=1`;
 }
+let firstLoad = true, designLive = false;
 frame.addEventListener('load', () => {
   document.getElementById('frame-loading').style.display = 'none';
   frame.style.display = '';
   decorate();
+  if (firstLoad) { firstLoad = false; loadTheme().then(() => { if (theme && (designLive || themeSaved)) runPreview(); }); }
+  else if (designLive) runPreview();
 });
+let themeSaved = false;
 
 function doc() { return frame.contentDocument; }
 function api(path, body) {
@@ -383,6 +419,96 @@ function showHoverBar(el) {
   const left = el.offsetLeft + el.offsetWidth - 142;
   hoverBar.style.top = top + 'px';
   hoverBar.style.left = Math.max(8, left) + 'px';
+}
+
+/* ── Design tab ── */
+const FONTS = ['Fraunces','Playfair Display','Cormorant Garamond','DM Serif Display','Syne','Space Grotesk','Poppins','Inter','Work Sans','DM Sans','Nunito Sans','Lato','system-ui'];
+const ACCENTS = ['#b0563d','#2f6b4f','#1f6feb','#7c3aed','#db2777','#ca8a04','#0f766e','#334155'];
+let theme = { colors:{ accent:'#b0563d', bg:'#ffffff', text:'#222222' }, headingFont:'Fraunces', bodyFont:'Inter', accentOn:true, baseOn:false };
+
+function initDesign() {
+  const hs = document.getElementById('d-hfont'), bs = document.getElementById('d-bfont');
+  FONTS.forEach(f => { hs.add(new Option(f, f)); bs.add(new Option(f, f)); });
+  const sw = document.getElementById('d-accent-sw');
+  ACCENTS.forEach(col => {
+    const s = document.createElement('div'); s.className = 'sw'; s.style.background = col;
+    s.onclick = () => { theme.colors.accent = col; markSw(); previewTheme(); };
+    sw.appendChild(s);
+  });
+  const custom = document.createElement('input'); custom.type = 'color'; custom.id = 'd-accent-custom'; custom.value = '#b0563d';
+  custom.oninput = () => { theme.colors.accent = custom.value; markSw(); previewTheme(); };
+  sw.appendChild(custom);
+
+  hs.onchange = () => { theme.headingFont = hs.value; previewTheme(); };
+  bs.onchange = () => { theme.bodyFont = bs.value; previewTheme(); };
+  document.getElementById('d-accentOn').onchange = e => { theme.accentOn = e.target.checked; previewTheme(); };
+  document.getElementById('d-baseOn').onchange = e => {
+    theme.baseOn = e.target.checked;
+    document.getElementById('d-base-rows').style.opacity = e.target.checked ? '1' : '.5';
+    document.getElementById('d-base-rows').style.pointerEvents = e.target.checked ? 'auto' : 'none';
+    previewTheme();
+  };
+  document.getElementById('d-bg').oninput = e => { theme.colors.bg = e.target.value; previewTheme(); };
+  document.getElementById('d-text').oninput = e => { theme.colors.text = e.target.value; previewTheme(); };
+}
+function markSw() {
+  document.querySelectorAll('#d-accent-sw .sw').forEach(s => s.classList.toggle('sel', s.style.background && rgb2hex(s.style.background) === theme.colors.accent));
+}
+function rgb2hex(rgb) {
+  const m = rgb.match(/\d+/g); if (!m) return rgb;
+  return '#' + m.slice(0,3).map(x => (+x).toString(16).padStart(2,'0')).join('');
+}
+function syncDesignControls() {
+  document.getElementById('d-hfont').value = theme.headingFont;
+  document.getElementById('d-bfont').value = theme.bodyFont;
+  document.getElementById('d-accentOn').checked = theme.accentOn !== false;
+  document.getElementById('d-baseOn').checked = !!theme.baseOn;
+  document.getElementById('d-base-rows').style.opacity = theme.baseOn ? '1' : '.5';
+  document.getElementById('d-base-rows').style.pointerEvents = theme.baseOn ? 'auto' : 'none';
+  if (theme.colors.bg) document.getElementById('d-bg').value = theme.colors.bg;
+  if (theme.colors.text) document.getElementById('d-text').value = theme.colors.text;
+  const custom = document.getElementById('d-accent-custom'); if (custom) custom.value = theme.colors.accent || '#b0563d';
+  markSw();
+}
+let themeNodes = [];
+let previewTimer = null;
+function previewTheme() { clearTimeout(previewTimer); previewTimer = setTimeout(runPreview, 250); }
+async function runPreview() {
+  try {
+    designLive = true;
+    const d = await api('theme?dry=1', theme);
+    const doc0 = doc(); if (!doc0) return;
+    themeNodes.forEach(n => n.remove());
+    const tpl = doc0.createElement('template');
+    tpl.innerHTML = d.block;
+    themeNodes = [...tpl.content.childNodes].filter(n => n.nodeType === 1);
+    themeNodes.forEach(n => doc0.head.appendChild(n));
+  } catch (e) { setStatus('d-status', e.message, 'err'); }
+}
+async function applyTheme() {
+  setStatus('d-status', 'Applying…');
+  try {
+    const d = await api('theme', theme);
+    setStatus('d-status', d.dryRun ? 'Applied (test mode — not pushed).' : 'Applied & published to your site.', 'ok');
+  } catch (e) { setStatus('d-status', e.message, 'err'); }
+}
+function resetTheme() {
+  theme = { colors:{ accent:'#b0563d', bg:'#ffffff', text:'#222222' }, headingFont:'Fraunces', bodyFont:'Inter', accentOn:true, baseOn:false };
+  syncDesignControls();
+  themeNodes.forEach(n => n.remove()); themeNodes = [];
+  setStatus('d-status', 'Reset — live preview cleared.', '');
+}
+async function loadTheme() {
+  try {
+    const r = await fetch(`/api/sites/${slug}/theme`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!r.ok) return;
+    const saved = await r.json();
+    if (saved && (saved.headingFont || saved.colors)) {
+      theme = Object.assign(theme, saved); theme.colors = Object.assign({ accent:'#b0563d', bg:'#ffffff', text:'#222222' }, saved.colors || {});
+      themeSaved = true;
+      syncDesignControls();
+    }
+  } catch (e) {}
 }
 
 function reload() { frame.src = `/preview/${slug}?token=${encodeURIComponent(token)}&raw=1&canvas=1&t=${Date.now()}`; }

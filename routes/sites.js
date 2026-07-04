@@ -2,7 +2,7 @@ const router = require('express').Router();
 const cheerio = require('cheerio');
 const fetch = require('node-fetch');
 const { requireAuth, requireSiteAccess } = require('../middleware/auth');
-const { readData, getSiteHTML, putSiteHTML, putSiteImage } = require('../lib/github-data');
+const { readData, writeData, getSiteHTML, putSiteHTML, putSiteImage } = require('../lib/github-data');
 const discord = require('../lib/discord');
 
 const GH_ORG = process.env.GITHUB_ORG || 'josephbusinesses664-dot';
@@ -271,6 +271,89 @@ router.post('/:slug/section/remove', requireSiteAccess, (req, res) =>
     if ($('[data-oc-sec]').length <= 1) return 'Cannot delete the only section';
     el.remove();
   }));
+
+// ── Design / theme (studio Design tab) ─────────────────────────────────────────
+// Injects one managed <style id="oc-theme"> block (between markers) into <head>.
+// Fonts apply reliably everywhere; colors set --oc-* vars (full effect on sites
+// that use them) plus a best-effort accent layer for links/buttons on legacy sites.
+
+const T_START = '<!-- OC-THEME:START -->';
+const T_END = '<!-- OC-THEME:END -->';
+
+const FONT_SPECS = {
+  'Fraunces': 'Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700',
+  'Playfair Display': 'Playfair+Display:wght@500;600;700;800',
+  'Cormorant Garamond': 'Cormorant+Garamond:wght@500;600;700',
+  'DM Serif Display': 'DM+Serif+Display',
+  'Space Grotesk': 'Space+Grotesk:wght@400;500;600;700',
+  'Syne': 'Syne:wght@500;600;700;800',
+  'Poppins': 'Poppins:wght@400;500;600;700',
+  'Inter': 'Inter:wght@400;500;600;700',
+  'Work Sans': 'Work+Sans:wght@400;500;600;700',
+  'DM Sans': 'DM+Sans:wght@400;500;600;700',
+  'Nunito Sans': 'Nunito+Sans:wght@400;600;700',
+  'Lato': 'Lato:wght@400;700',
+  'system-ui': null,
+};
+const FONTS = Object.keys(FONT_SPECS);
+const hex = (v, d) => (/^#[0-9a-fA-F]{3,8}$/.test(String(v)) ? v : d);
+const qf = f => (f === 'system-ui' ? 'system-ui' : `'${f}'`);
+
+function themeFontLink(fonts) {
+  const specs = [...new Set(fonts)].map(f => FONT_SPECS[f]).filter(Boolean);
+  return specs.length ? `<link href="https://fonts.googleapis.com/css2?family=${specs.join('&family=')}&display=swap" rel="stylesheet">` : '';
+}
+
+function buildThemeBlock(t) {
+  const c = t.colors || {};
+  const bg = hex(c.bg, '#ffffff'), surface = hex(c.surface, bg), text = hex(c.text, '#222222');
+  const accent = hex(c.accent, '#b0563d'), ink = hex(c.accentInk, '#ffffff'), border = hex(c.border, '#e6e6e6');
+  const hf = FONTS.includes(t.headingFont) ? t.headingFont : 'Fraunces';
+  const bf = FONTS.includes(t.bodyFont) ? t.bodyFont : 'Inter';
+  const accentLayer = t.accentOn === false ? '' :
+    `a:not([class]){color:${accent};}\n` +
+    `.btn,[class*="btn"],button:not([class*="close"]):not([class*="nav"]){background-color:${accent};border-color:${accent};color:${ink};}`;
+  const baseLayer = t.baseOn ? `body{background:${bg};color:${text};}` : '';
+  return `${T_START}\n${themeFontLink([hf, bf])}\n<style id="oc-theme">\n` +
+    `:root{--oc-bg:${bg};--oc-surface:${surface};--oc-text:${text};--oc-accent:${accent};--oc-accent-ink:${ink};--oc-border:${border};--oc-heading-font:${qf(hf)};--oc-body-font:${qf(bf)};}\n` +
+    `body{font-family:${qf(bf)},system-ui,sans-serif !important;}\n` +
+    `h1,h2,h3,h4,h5,h6,.title,[class*="title"],[class*="heading"]{font-family:${qf(hf)},Georgia,serif !important;}\n` +
+    `${baseLayer}\n${accentLayer}\n</style>\n${T_END}`;
+}
+
+// GET saved theme
+router.get('/:slug/theme', requireSiteAccess, async (req, res) => {
+  try {
+    const all = (await readData('customizations')) || {};
+    res.json((all[req.params.slug] && all[req.params.slug].theme) || {});
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// POST theme — ?dry=1 returns the block for live preview; otherwise inject + persist
+router.post('/:slug/theme', requireSiteAccess, async (req, res) => {
+  const { slug } = req.params;
+  const t = req.body || {};
+  try {
+    const block = buildThemeBlock(t);
+    if (req.query.dry === '1' || DRY()) return res.json({ ok: true, dryRun: true, block });
+
+    const sites = await readData('sites');
+    const site = sites?.[slug];
+    if (!site) return res.status(404).json({ error: 'Site not found' });
+    const { html, sha } = await getSiteHTML(site.githubRepo);
+    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
+
+    let patched;
+    if (html.includes(T_START)) patched = html.replace(new RegExp(`${T_START}[\\s\\S]*?${T_END}`), block);
+    else patched = html.replace(/<\/head>/i, `${block}\n</head>`);
+    await putSiteHTML(site.githubRepo, patched, sha, `Design: theme update for ${site.business}`);
+
+    const all = (await readData('customizations')) || {};
+    all[slug] = { ...(all[slug] || {}), theme: t };
+    await writeData('customizations', all, `Theme config for ${slug}`);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 // ── Proxy handler — injects overlay into site HTML ─────────────────────────────
 
