@@ -129,6 +129,11 @@
           <label class="field">Replace image</label>
           <input type="file" id="edit-file" accept="image/*">
         </div>
+        <div id="edit-map-wrap" style="display:none">
+          <label class="field">Map location</label>
+          <input type="text" id="edit-map" placeholder="e.g. 123 Main St, Springfield, IL">
+          <p style="font-size:12px;color:var(--muted);margin-top:6px">Type any address or place name — the map updates to point there.</p>
+        </div>
         <div class="btn-row">
           <button class="btn btn-solid" onclick="saveEdit()">Save</button>
           <button class="btn btn-ghost" onclick="dupItem()">Duplicate item</button>
@@ -295,31 +300,46 @@ function selectEl(el) {
   el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   // switch to Edit tab
   document.querySelector('.tab[data-tab="edit"]').click();
-  const isImg = el.tagName.toLowerCase() === 'img';
+  const tag = el.tagName.toLowerCase();
+  const isImg = tag === 'img';
+  const isMap = tag === 'iframe';
   document.getElementById('edit-empty').style.display = 'none';
   document.getElementById('edit-controls').style.display = 'block';
-  document.getElementById('edit-text-wrap').style.display = isImg ? 'none' : 'block';
+  document.getElementById('edit-text-wrap').style.display = (isImg || isMap) ? 'none' : 'block';
   document.getElementById('edit-img-wrap').style.display = isImg ? 'block' : 'none';
-  if (!isImg) document.getElementById('edit-text').value = el.textContent.trim();
+  document.getElementById('edit-map-wrap').style.display = isMap ? 'block' : 'none';
+  if (isMap) {
+    const m = (el.getAttribute('src') || '').match(/[?&]q=([^&]+)/);
+    document.getElementById('edit-map').value = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+  } else if (!isImg) {
+    document.getElementById('edit-text').value = el.textContent.trim();
+  }
   document.getElementById('edit-file').value = '';
   setStatus('edit-status', '');
 }
 async function saveEdit() {
   if (!selId) return;
-  const isImg = selEl.tagName.toLowerCase() === 'img';
+  const tag = selEl.tagName.toLowerCase();
+  const isImg = tag === 'img';
+  const isMap = tag === 'iframe';
   let newValue;
   if (isImg) {
     const f = document.getElementById('edit-file').files[0];
     if (!f) { setStatus('edit-status', 'Choose an image first.', 'err'); return; }
     newValue = await new Promise(res => { const rd = new FileReader(); rd.onload = e => res(e.target.result); rd.readAsDataURL(f); });
+  } else if (isMap) {
+    newValue = document.getElementById('edit-map').value.trim();
+    if (!newValue) { setStatus('edit-status', 'Enter an address or place.', 'err'); return; }
   } else {
     newValue = document.getElementById('edit-text').value.trim();
     if (!newValue) return;
   }
   setStatus('edit-status', 'Saving…');
   try {
-    const d = await api('edit', { ocId: selId, newValue, isImage: isImg });
-    if (isImg) selEl.src = newValue; else selEl.textContent = newValue;
+    const d = await api('edit', { ocId: selId, newValue, isImage: isImg, isMap });
+    if (isImg) selEl.src = newValue;
+    else if (isMap) selEl.src = `https://www.google.com/maps?q=${encodeURIComponent(newValue).replace(/%20/g, '+')}&output=embed`;
+    else selEl.textContent = newValue;
     setStatus('edit-status', d.dryRun ? 'Saved (test mode — not pushed).' : 'Saved & published.', 'ok');
   } catch (e) { setStatus('edit-status', e.message, 'err'); }
 }
@@ -409,7 +429,7 @@ async function persist(path, body) {
 const TEMPLATES = [
   ['hero', 'Hero banner', '◳'], ['about', 'About / story', '❦'], ['features', 'Feature grid', '⊞'],
   ['menu', 'Menu / services', '☰'], ['gallery', 'Photo gallery', '▦'], ['testimonial', 'Testimonial', '❝'],
-  ['contact', 'Contact / hours', '⌖'], ['cta', 'Call to action', '➤'],
+  ['contact', 'Contact / hours', '⌖'], ['cta', 'Call to action', '➤'], ['map', 'Map / location', '◉'],
 ];
 let pickerBuilt = false;
 function openAddPicker() {

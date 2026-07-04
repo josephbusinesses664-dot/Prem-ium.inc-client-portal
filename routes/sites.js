@@ -47,7 +47,7 @@ router.get('/:slug', requireAuth, async (req, res) => {
 // POST /api/sites/:slug/edit — save a text/image edit
 router.post('/:slug/edit', requireSiteAccess, async (req, res) => {
   const { slug } = req.params;
-  const { ocId, newValue, isImage } = req.body;
+  const { ocId, newValue, isImage, isMap } = req.body;
   if (!ocId || newValue === undefined) return res.status(400).json({ error: 'Missing ocId or newValue' });
 
   try {
@@ -68,7 +68,11 @@ router.post('/:slug/edit', requireSiteAccess, async (req, res) => {
     const tag = el.prop('tagName').toLowerCase();
     let oldValue;
 
-    if (isImage || tag === 'img') {
+    if (isMap || (tag === 'iframe' && /google\.com\/maps|maps\.google/.test(el.attr('src') || ''))) {
+      oldValue = el.attr('src') || '';
+      const q = encodeURIComponent(String(newValue).trim()).replace(/%20/g, '+');
+      el.attr('src', `https://www.google.com/maps?q=${q}&output=embed`);
+    } else if (isImage || tag === 'img') {
       oldValue = el.attr('src') || '';
       // newValue is either a data: URI or a path to an already-uploaded image
       if (newValue.startsWith('data:')) {
@@ -289,6 +293,7 @@ const SECTION_TEMPLATES = {
   testimonial: `<section style="padding:72px 24px;background:#fff;text-align:center"><div style="max-width:680px;margin:0 auto"><p style="${_h};font-size:24px;line-height:1.5;color:var(--oc-text,#222);margin:0 0 18px">“A glowing customer quote goes right here — it builds trust fast.”</p><p style="font-weight:600;color:var(--oc-accent,#b0563d);margin:0">— Happy Customer</p></div></section>`,
   contact: `<section style="padding:72px 24px;background:var(--oc-surface,#faf9f6)"><div style="max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:32px"><div><h3 style="${_h};font-size:20px;margin:0 0 10px;color:var(--oc-text,#222)">Visit us</h3><p style="color:var(--oc-text,#555);line-height:1.7;margin:0">123 Main Street<br>Your City, ST 00000</p></div><div><h3 style="${_h};font-size:20px;margin:0 0 10px;color:var(--oc-text,#222)">Hours</h3><p style="color:var(--oc-text,#555);line-height:1.7;margin:0">Mon–Fri: 9am – 6pm<br>Sat–Sun: 10am – 4pm</p></div></div></section>`,
   cta: `<section style="padding:64px 24px;text-align:center;background:var(--oc-accent,#b0563d)"><div style="max-width:640px;margin:0 auto"><h2 style="${_h};font-size:30px;color:var(--oc-accent-ink,#fff);margin:0 0 14px">Ready to get started?</h2><a href="#" style="display:inline-block;background:var(--oc-accent-ink,#fff);color:var(--oc-accent,#b0563d);padding:13px 28px;border-radius:10px;text-decoration:none;font-weight:700">Contact us</a></div></section>`,
+  map: `<section style="padding:72px 24px;background:var(--oc-surface,#faf9f6)"><div style="max-width:900px;margin:0 auto"><h2 style="${_h};font-size:28px;text-align:center;margin:0 0 10px;color:var(--oc-text,#222)">Find us</h2><p style="text-align:center;color:var(--oc-text,#555);margin:0 0 20px">123 Main Street, Your City, ST 00000</p><div style="border-radius:14px;overflow:hidden;border:1px solid var(--oc-border,#e6e6e6)"><iframe src="https://www.google.com/maps?q=Times+Square,+New+York&output=embed" width="100%" height="380" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div></div></section>`,
 };
 
 router.post('/:slug/section/add', requireSiteAccess, async (req, res) => {
@@ -506,6 +511,13 @@ function injectOcIds($) {
     const $el = $(el);
     if (tag === 'img') {
       if (!$el.attr('data-oc-id')) { $el.attr('data-oc-id', `oc-${String(idx).padStart(4, '0')}`); idx++; }
+      return;
+    }
+    if (tag === 'iframe') {
+      // Google Maps embeds are editable (change the location); other iframes aren't
+      if (/google\.com\/maps|maps\.google/.test($el.attr('src') || '') && !$el.attr('data-oc-id')) {
+        $el.attr('data-oc-id', `oc-${String(idx).padStart(4, '0')}`); idx++;
+      }
       return;
     }
     const hasDirectText = $el.contents().filter((_, n) => n.type === 'text' && n.data.trim().length > 0).length > 0;
