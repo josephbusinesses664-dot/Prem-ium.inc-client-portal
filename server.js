@@ -30,6 +30,7 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'adm
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/analytics', (req, res) => res.sendFile(path.join(__dirname, 'public', 'analytics.html')));
 app.get('/customize', (req, res) => res.sendFile(path.join(__dirname, 'public', 'customize.html')));
+app.get('/studio', (req, res) => res.sendFile(path.join(__dirname, 'public', 'studio.html')));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {

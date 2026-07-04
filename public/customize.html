@@ -219,10 +219,10 @@
 
 <script>
 const token = localStorage.getItem('oc_token');
-const slug = localStorage.getItem('oc_slug');
+const slug = new URLSearchParams(location.search).get('slug') || localStorage.getItem('oc_slug');
 const username = localStorage.getItem('oc_username');
-if (!token) location.href = '/login?next=/customize';
-if (localStorage.getItem('oc_role') === 'admin' && !slug) location.href = '/admin';
+if (!token) location.href = '/login?next=' + encodeURIComponent('/customize' + location.search);
+else if (!slug) location.href = localStorage.getItem('oc_role') === 'admin' ? '/admin' : '/dashboard';
 document.getElementById('user-label').textContent = username || '';
 document.getElementById('tab-content').href = `/preview/${slug}?token=${encodeURIComponent(token)}`;
 

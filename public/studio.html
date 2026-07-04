@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Studio — prem-ium.inc</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23b0563d' d='M50 12C50 12 22 40 22 60a16 16 0 0027 12c-1 9-6 13-12 16h26c-6-3-11-7-12-16a16 16 0 0027-12C78 40 50 12 50 12z'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#faf9f6; --bg2:#f3f1ea; --surface:#ffffff;
+    --text:#2b2721; --muted:#8a8378; --border:#e7e2d8;
+    --accent:#b0563d; --accent-ink:#ffffff; --accent-deep:#96472f;
+    --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
+  }
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body { font-family:var(--sans); color:var(--text); background:var(--bg2); display:flex; flex-direction:column; overflow:hidden; -webkit-font-smoothing:antialiased; }
+  ::selection { background:rgba(176,86,61,.18); }
+  ::-webkit-scrollbar { width:9px; height:9px; }
+  ::-webkit-scrollbar-track { background:var(--bg2); }
+  ::-webkit-scrollbar-thumb { background:#d8d0c2; border-radius:5px; border:2px solid var(--bg2); }
+
+  /* Top bar */
+  .topbar { display:flex; align-items:center; gap:16px; padding:11px 20px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; z-index:5; }
+  .logo { font-size:17px; font-weight:700; letter-spacing:-.02em; color:var(--text); text-decoration:none; }
+  .logo span { color:var(--accent); }
+  .editing { font-size:13px; color:var(--muted); padding-left:16px; border-left:1px solid var(--border); }
+  .editing b { color:var(--text); font-weight:600; }
+  .tabs { margin:0 auto; display:flex; gap:2px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:3px; }
+  .tab { border:none; background:none; font-family:inherit; font-size:13px; font-weight:600; color:var(--muted); padding:7px 16px; border-radius:7px; cursor:pointer; transition:.15s; }
+  .tab:hover { color:var(--text); }
+  .tab.active { background:var(--surface); color:var(--accent); box-shadow:0 1px 2px rgba(80,60,40,.08); }
+  .exit { font-size:13px; color:var(--muted); text-decoration:none; font-weight:500; padding:7px 12px; border-radius:8px; }
+  .exit:hover { background:var(--bg2); color:var(--text); }
+
+  /* Layout */
+  .body { flex:1; display:flex; min-height:0; }
+  aside { width:360px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; min-height:0; }
+  .panel { display:none; flex:1; overflow-y:auto; padding:20px; }
+  .panel.active { display:block; }
+  .panel h2 { font-family:var(--serif); font-size:18px; font-weight:600; margin-bottom:4px; }
+  .panel .lead { font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:18px; }
+
+  .canvas-wrap { flex:1; min-width:0; display:flex; flex-direction:column; background:var(--bg2); }
+  .canvas-bar { display:flex; align-items:center; gap:10px; padding:8px 16px; background:var(--surface); border-bottom:1px solid var(--border); font-size:12px; color:var(--muted); }
+  .canvas-bar .dot { width:9px; height:9px; border-radius:50%; }
+  .canvas-bar .url { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .frame-hold { flex:1; position:relative; }
+  iframe { width:100%; height:100%; border:none; background:#fff; display:block; }
+  .frame-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:14px; }
+
+  /* Controls */
+  label.field { display:block; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); margin:16px 0 7px; }
+  textarea, input[type=text] { width:100%; font-family:inherit; font-size:13.5px; padding:10px 12px; border:1px solid var(--border); border-radius:9px; background:var(--bg); color:var(--text); outline:none; resize:vertical; transition:border-color .15s, box-shadow .15s; }
+  textarea:focus, input[type=text]:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(176,86,61,.13); }
+  .btn { font-family:inherit; font-size:13px; font-weight:600; border-radius:9px; padding:9px 15px; cursor:pointer; border:1px solid transparent; transition:.15s; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+  .btn-solid { background:var(--accent); color:var(--accent-ink); }
+  .btn-solid:hover { filter:brightness(1.07); }
+  .btn-ghost { background:var(--surface); color:var(--text); border-color:var(--border); }
+  .btn-ghost:hover { background:var(--bg2); }
+  .btn-danger { background:none; color:#b4432e; border-color:#e3c4bb; }
+  .btn-danger:hover { background:#f7ece8; }
+  .btn-row { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  .hint-empty { color:var(--muted); font-size:13px; line-height:1.5; background:var(--bg2); border:1px dashed var(--border); border-radius:10px; padding:16px; text-align:center; }
+  .status { font-size:12.5px; margin-top:12px; min-height:16px; }
+  .status.ok { color:#3a7a4a; } .status.err { color:#b4432e; }
+
+  /* Section list */
+  .sec-item { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:10px 12px; margin-bottom:8px; transition:border-color .15s, box-shadow .15s; }
+  .sec-item:hover { border-color:rgba(176,86,61,.4); box-shadow:0 2px 10px rgba(80,60,40,.06); }
+  .sec-grip { color:#c4b9a6; font-size:15px; cursor:default; }
+  .sec-label { flex:1; font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sec-btns { display:flex; gap:2px; }
+  .sec-btns button { border:none; background:none; cursor:pointer; color:var(--muted); width:28px; height:28px; border-radius:7px; display:grid; place-items:center; transition:.14s; }
+  .sec-btns button:hover { background:var(--bg2); color:var(--accent); }
+  .sec-btns button.del:hover { background:#f7ece8; color:#b4432e; }
+  .sec-btns button:disabled { opacity:.3; cursor:default; }
+  .add-sec { width:100%; margin-top:6px; border:1px dashed var(--border); background:var(--bg2); color:var(--accent); font-weight:600; }
+  .add-sec:hover { border-color:var(--accent); }
+
+  .soon { color:var(--muted); font-size:13.5px; line-height:1.55; }
+  .soon a { color:var(--accent); font-weight:600; text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="logo" href="/">prem-ium<span>.inc</span></a>
+  <span class="editing">Editing <b id="biz">…</b></span>
+  <div class="tabs">
+    <button class="tab active" data-tab="edit">Edit</button>
+    <button class="tab" data-tab="sections">Sections</button>
+    <button class="tab" data-tab="design">Design</button>
+    <button class="tab" data-tab="animations">Animations</button>
+  </div>
+  <a class="exit" href="/dashboard">Exit ✕</a>
+</div>
+
+<div class="body">
+  <aside>
+    <!-- EDIT -->
+    <div class="panel active" id="panel-edit">
+      <h2>Edit content</h2>
+      <p class="lead">Click any text or image in your site on the right to edit it here.</p>
+      <div id="edit-empty" class="hint-empty">Nothing selected yet — click something in the preview.</div>
+      <div id="edit-controls" style="display:none">
+        <div id="edit-text-wrap">
+          <label class="field">Text</label>
+          <textarea id="edit-text" rows="4"></textarea>
+        </div>
+        <div id="edit-img-wrap" style="display:none">
+          <label class="field">Replace image</label>
+          <input type="file" id="edit-file" accept="image/*">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-solid" onclick="saveEdit()">Save</button>
+          <button class="btn btn-ghost" onclick="dupItem()">Duplicate item</button>
+          <button class="btn btn-danger" onclick="delItem()">Delete item</button>
+        </div>
+        <div class="status" id="edit-status"></div>
+      </div>
+    </div>
+
+    <!-- SECTIONS -->
+    <div class="panel" id="panel-sections">
+      <h2>Sections</h2>
+      <p class="lead">Reorder, duplicate, or delete whole sections of your page. Hover a section in the preview for the same controls.</p>
+      <div id="sec-list"></div>
+      <button class="btn add-sec" onclick="addSectionSoon()">+ Add section</button>
+      <div class="status" id="sec-status"></div>
+    </div>
+
+    <!-- DESIGN -->
+    <div class="panel" id="panel-design">
+      <h2>Design</h2>
+      <p class="lead">Global colors &amp; fonts for your whole site.</p>
+      <div class="soon">Coming in the next update — you'll be able to change your site's color palette and fonts here, with a live preview.</div>
+    </div>
+
+    <!-- ANIMATIONS -->
+    <div class="panel" id="panel-animations">
+      <h2>Animations</h2>
+      <p class="lead">Opening animation &amp; text effects.</p>
+      <div class="soon">The animation studio lives at <a href="/customize">/customize</a> for now — it moves into this tab in the next update.</div>
+    </div>
+  </aside>
+
+  <div class="canvas-wrap">
+    <div class="canvas-bar">
+      <span class="dot" style="background:#e0685a"></span>
+      <span class="dot" style="background:#e8b24a"></span>
+      <span class="dot" style="background:#7bbf6a"></span>
+      <span class="url" id="canvas-url">Loading…</span>
+    </div>
+    <div class="frame-hold">
+      <div class="frame-loading" id="frame-loading">Loading your site…</div>
+      <iframe id="frame" style="display:none"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('oc_token');
+// Admins can edit any site via ?slug=; clients use their own linked site.
+const slug = new URLSearchParams(location.search).get('slug') || localStorage.getItem('oc_slug');
+if (!token) location.href = '/login?next=' + encodeURIComponent('/studio' + location.search);
+else if (!slug) location.href = localStorage.getItem('oc_role') === 'admin' ? '/admin' : '/dashboard';
+
+const frame = document.getElementById('frame');
+let selEl = null, selId = null;
+
+/* ── Tabs ── */
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + t.dataset.tab));
+});
+
+/* ── Load site + canvas ── */
+async function boot() {
+  try {
+    const r = await fetch(`/api/sites/${slug}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (r.status === 401) { localStorage.clear(); location.href = '/login?next=/studio'; return; }
+    const site = await r.json();
+    document.getElementById('biz').textContent = site.business || 'your site';
+    document.getElementById('canvas-url').textContent = site.renderUrl || '';
+  } catch (e) {}
+  frame.src = `/preview/${slug}?token=${encodeURIComponent(token)}&raw=1&canvas=1`;
+}
+frame.addEventListener('load', () => {
+  document.getElementById('frame-loading').style.display = 'none';
+  frame.style.display = '';
+  decorate();
+});
+
+function doc() { return frame.contentDocument; }
+function api(path, body) {
+  return fetch(`/api/sites/${slug}/${path}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  }).then(async r => { const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || 'Failed'); return d; });
+}
+
+/* ── Decorate canvas: section ids, element clicks, hover toolbars ── */
+function sectionNodes() {
+  const d = doc(); if (!d || !d.body) return [];
+  const main = d.body.querySelector(':scope > main');
+  const container = (main && d.body.children.length <= 2) ? main : d.body;
+  return [...container.children].filter(el => /^(HEADER|SECTION|FOOTER)$/.test(el.tagName));
+}
+function decorate() {
+  const d = doc(); if (!d || !d.body) return;
+  // (re)assign section ids client-side to mirror the server
+  sectionNodes().forEach((el, i) => el.setAttribute('data-oc-sec', 'sec-' + String(i + 1).padStart(3, '0')));
+  buildSectionList();
+  wireElements();
+  wireSectionHover();
+}
+
+/* Element selection for Edit tab */
+function wireElements() {
+  const d = doc();
+  d.querySelectorAll('[data-oc-id]').forEach(el => {
+    if (el.__ocWired) return; el.__ocWired = 1;
+    el.style.cursor = 'pointer';
+    el.addEventListener('mouseenter', () => { if (selEl !== el) el.style.outline = '2px solid rgba(176,86,61,.5)'; });
+    el.addEventListener('mouseleave', () => { if (selEl !== el) el.style.outline = ''; });
+    el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); selectEl(el); }, true);
+  });
+}
+function selectEl(el) {
+  if (selEl) { selEl.style.outline = ''; }
+  selEl = el; selId = el.getAttribute('data-oc-id');
+  el.style.outline = '2.5px solid var(--accent, #b0563d)';
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  // switch to Edit tab
+  document.querySelector('.tab[data-tab="edit"]').click();
+  const isImg = el.tagName.toLowerCase() === 'img';
+  document.getElementById('edit-empty').style.display = 'none';
+  document.getElementById('edit-controls').style.display = 'block';
+  document.getElementById('edit-text-wrap').style.display = isImg ? 'none' : 'block';
+  document.getElementById('edit-img-wrap').style.display = isImg ? 'block' : 'none';
+  if (!isImg) document.getElementById('edit-text').value = el.textContent.trim();
+  document.getElementById('edit-file').value = '';
+  setStatus('edit-status', '');
+}
+async function saveEdit() {
+  if (!selId) return;
+  const isImg = selEl.tagName.toLowerCase() === 'img';
+  let newValue;
+  if (isImg) {
+    const f = document.getElementById('edit-file').files[0];
+    if (!f) { setStatus('edit-status', 'Choose an image first.', 'err'); return; }
+    newValue = await new Promise(res => { const rd = new FileReader(); rd.onload = e => res(e.target.result); rd.readAsDataURL(f); });
+  } else {
+    newValue = document.getElementById('edit-text').value.trim();
+    if (!newValue) return;
+  }
+  setStatus('edit-status', 'Saving…');
+  try {
+    const d = await api('edit', { ocId: selId, newValue, isImage: isImg });
+    if (isImg) selEl.src = newValue; else selEl.textContent = newValue;
+    setStatus('edit-status', d.dryRun ? 'Saved (test mode — not pushed).' : 'Saved & published.', 'ok');
+  } catch (e) { setStatus('edit-status', e.message, 'err'); }
+}
+async function dupItem() {
+  if (!selId) return;
+  setStatus('edit-status', 'Duplicating…');
+  try {
+    const d = await api('duplicate', { ocId: selId });
+    setStatus('edit-status', d.dryRun ? 'Duplicated (test mode). Reloading…' : 'Duplicated. Reloading…', 'ok');
+    reload();
+  } catch (e) { setStatus('edit-status', e.message, 'err'); }
+}
+async function delItem() {
+  if (!selId || !confirm('Delete this item?')) return;
+  setStatus('edit-status', 'Deleting…');
+  try {
+    const d = await api('remove', { ocId: selId });
+    selEl.remove(); selEl = null; selId = null;
+    document.getElementById('edit-controls').style.display = 'none';
+    document.getElementById('edit-empty').style.display = 'block';
+    setStatus('edit-status', d.dryRun ? 'Deleted (test mode).' : 'Deleted.', 'ok');
+    decorate();
+  } catch (e) { setStatus('edit-status', e.message, 'err'); }
+}
+
+/* Sections list */
+function sectionLabel(el) {
+  const h = el.querySelector('h1,h2,h3,h4');
+  const t = (h ? h.textContent : el.textContent).trim().replace(/\s+/g, ' ');
+  return t ? t.slice(0, 34) : el.tagName.toLowerCase();
+}
+function buildSectionList() {
+  const secs = sectionNodes();
+  const list = document.getElementById('sec-list');
+  list.innerHTML = secs.map((el, i) => {
+    const id = el.getAttribute('data-oc-sec');
+    return `<div class="sec-item" data-sec="${id}">
+      <span class="sec-grip">⋮⋮</span>
+      <span class="sec-label">${escapeHtml(sectionLabel(el))}</span>
+      <span class="sec-btns">
+        <button title="Move up" onclick="secMove('${id}','up')" ${i === 0 ? 'disabled' : ''}>↑</button>
+        <button title="Move down" onclick="secMove('${id}','down')" ${i === secs.length - 1 ? 'disabled' : ''}>↓</button>
+        <button title="Duplicate" onclick="secDup('${id}')">⧉</button>
+        <button title="Delete" class="del" onclick="secDel('${id}')" ${secs.length <= 1 ? 'disabled' : ''}>🗑</button>
+      </span>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.sec-item').forEach(row => {
+    row.addEventListener('mouseenter', () => { const el = getSec(row.dataset.sec); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); });
+  });
+}
+function getSec(id) { return doc().querySelector(`[data-oc-sec="${id}"]`); }
+
+async function secMove(id, dir) {
+  const el = getSec(id); if (!el) return;
+  const sib = dir === 'up' ? el.previousElementSibling : el.nextElementSibling;
+  if (!sib) return;
+  if (dir === 'up') el.parentNode.insertBefore(el, sib); else el.parentNode.insertBefore(sib, el);
+  decorate();
+  persist('section/move', { sectionId: id, dir });
+}
+async function secDup(id) {
+  const el = getSec(id); if (!el) return;
+  const clone = el.cloneNode(true);
+  clone.removeAttribute('data-oc-sec');
+  clone.querySelectorAll('[data-oc-sec],[data-oc-id]').forEach(n => { n.removeAttribute('data-oc-sec'); n.removeAttribute('data-oc-id'); });
+  el.parentNode.insertBefore(clone, el.nextSibling);
+  decorate();
+  persist('section/duplicate', { sectionId: id });
+}
+async function secDel(id) {
+  const el = getSec(id); if (!el) return;
+  if (sectionNodes().length <= 1) { setStatus('sec-status', 'Cannot delete the only section.', 'err'); return; }
+  if (!confirm('Delete this whole section?')) return;
+  el.remove();
+  decorate();
+  persist('section/remove', { sectionId: id });
+}
+async function persist(path, body) {
+  setStatus('sec-status', 'Saving…');
+  try {
+    const d = await api(path, body);
+    if (!d.dryRun) { setStatus('sec-status', 'Saved & published.', 'ok'); reload(); }
+    else setStatus('sec-status', 'Saved (test mode — not pushed).', 'ok');
+  } catch (e) { setStatus('sec-status', e.message, 'err'); reload(); }
+}
+function addSectionSoon() { setStatus('sec-status', 'The section library arrives in the next update.', ''); }
+
+/* Section hover toolbar (drawn inside the iframe) */
+let hoverBar = null;
+function wireSectionHover() {
+  const d = doc(); if (!d || !d.body) return;
+  if (!hoverBar) {
+    hoverBar = d.createElement('div');
+    hoverBar.style.cssText = 'position:absolute;z-index:99998;display:none;gap:2px;background:#fff;border:1px solid #e7e2d8;border-radius:9px;padding:3px;box-shadow:0 6px 20px rgba(80,60,40,.18);font-family:Inter,sans-serif';
+    d.body.appendChild(hoverBar);
+  }
+  sectionNodes().forEach(el => {
+    if (el.__ocHover) return; el.__ocHover = 1;
+    el.addEventListener('mouseenter', () => showHoverBar(el));
+  });
+  d.addEventListener('mousemove', e => {
+    if (!hoverBar || hoverBar.style.display === 'none') return;
+    const overBar = hoverBar.contains(e.target);
+    const sec = e.target.closest && e.target.closest('[data-oc-sec]');
+    if (!overBar && !sec) hoverBar.style.display = 'none';
+  }, true);
+}
+function showHoverBar(el) {
+  const id = el.getAttribute('data-oc-sec');
+  const secs = sectionNodes(); const idx = secs.indexOf(el);
+  const btn = (label, title, fn, danger) => `<button title="${title}" onclick="${fn}" style="border:none;background:none;cursor:pointer;width:30px;height:30px;border-radius:7px;font-size:14px;color:${danger ? '#b4432e' : '#8a8378'}">${label}</button>`;
+  hoverBar.innerHTML =
+    btn('↑', 'Move up', `parent.secMove('${id}','up')`, false) +
+    btn('↓', 'Move down', `parent.secMove('${id}','down')`, false) +
+    btn('⧉', 'Duplicate', `parent.secDup('${id}')`, false) +
+    btn('🗑', 'Delete', `parent.secDel('${id}')`, true);
+  hoverBar.style.display = 'flex';
+  const top = el.offsetTop + 8;
+  const left = el.offsetLeft + el.offsetWidth - 142;
+  hoverBar.style.top = top + 'px';
+  hoverBar.style.left = Math.max(8, left) + 'px';
+}
+
+function reload() { frame.src = `/preview/${slug}?token=${encodeURIComponent(token)}&raw=1&canvas=1&t=${Date.now()}`; }
+function setStatus(id, msg, cls) { const s = document.getElementById(id); s.textContent = msg; s.className = 'status ' + (cls || ''); }
+function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+boot();
+</script>
+</body>
+</html>

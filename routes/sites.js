@@ -209,6 +209,69 @@ router.post('/:slug/remove', requireSiteAccess, async (req, res) => {
   }
 });
 
+// ── Section-level operations (studio Sections tab) ─────────────────────────────
+// Sections = top-level content blocks (header/section/footer, direct children of
+// body or a single wrapping <main>). Same cheerio+commit pattern as edit/duplicate.
+
+const DRY = () => process.env.CUSTOMIZE_DRY_RUN === '1';
+
+async function sectionOp(req, res, verb, apply) {
+  const { slug } = req.params;
+  const { sectionId } = req.body;
+  if (!sectionId) return res.status(400).json({ error: 'Missing sectionId' });
+  try {
+    const sites = await readData('sites');
+    const site = sites?.[slug];
+    if (!site) return res.status(404).json({ error: 'Site not found' });
+
+    const { html, sha } = await getSiteHTML(site.githubRepo);
+    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
+
+    const $ = cheerio.load(html, { decodeEntities: false });
+    injectOcSecs($);
+    const el = $(`[data-oc-sec="${sectionId}"]`);
+    if (!el.length) return res.status(404).json({ error: 'Section not found' });
+
+    const problem = apply($, el);
+    if (problem) return res.status(400).json({ error: problem });
+
+    $('[data-oc-sec]').removeAttr('data-oc-sec');
+    $('[data-oc-id]').removeAttr('data-oc-id');
+
+    if (DRY()) return res.json({ ok: true, dryRun: true });
+
+    const msg = `Client ${verb} [${req.user.username}]: ${site.business}`;
+    const result = await putSiteHTML(site.githubRepo, $.html(), sha, msg);
+    const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
+    await discord.notify(`✎ **${site.business}** — \`${req.user.username}\` ${verb}\n📝 ${commitUrl}`);
+    res.json({ ok: true, commitUrl });
+  } catch (err) {
+    console.error(`[sites] section ${verb} error:`, err.message);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+router.post('/:slug/section/move', requireSiteAccess, (req, res) =>
+  sectionOp(req, res, 'moved a section', ($, el) => {
+    const dir = req.body.dir;
+    const sib = dir === 'up' ? el.prev('[data-oc-sec]') : el.next('[data-oc-sec]');
+    if (!sib.length) return `Already at the ${dir === 'up' ? 'top' : 'bottom'}`;
+    if (dir === 'up') el.insertBefore(sib); else el.insertAfter(sib);
+  }));
+
+router.post('/:slug/section/duplicate', requireSiteAccess, (req, res) =>
+  sectionOp(req, res, 'duplicated a section', ($, el) => {
+    const clone = $(el.get(0)).clone();
+    clone.removeAttr('data-oc-sec');
+    el.after('\n').after(clone);
+  }));
+
+router.post('/:slug/section/remove', requireSiteAccess, (req, res) =>
+  sectionOp(req, res, 'removed a section', ($, el) => {
+    if ($('[data-oc-sec]').length <= 1) return 'Cannot delete the only section';
+    el.remove();
+  }));
+
 // ── Proxy handler — injects overlay into site HTML ─────────────────────────────
 
 async function proxyHandler(req, res) {
@@ -272,6 +335,9 @@ async function proxyHandler(req, res) {
     // Inject data-oc-id on all editable elements
     injectOcIds($);
 
+    // canvas=1 → also mark top-level sections (studio Sections tab)
+    if (req.query.canvas) injectOcSecs($);
+
     // raw=1 → clean proxied HTML (used by the customize studio live preview)
     if (!req.query.raw) {
       // Inject meta tags and editor overlay before </body>
@@ -308,6 +374,18 @@ function injectOcIds($) {
     if (hasDirectText && !$el.attr('data-oc-id')) {
       $el.attr('data-oc-id', `oc-${String(idx).padStart(4, '0')}`); idx++;
     }
+  });
+}
+
+// Mark top-level content blocks so the studio can reorder/duplicate/delete them.
+function injectOcSecs($) {
+  const body = $('body');
+  const main = body.children('main');
+  const container = main.length === 1 ? main : body;
+  let idx = 1;
+  container.children('header, section, footer').each((_, el) => {
+    const $el = $(el);
+    if (!$el.attr('data-oc-sec')) { $el.attr('data-oc-sec', `sec-${String(idx).padStart(3, '0')}`); idx++; }
   });
 }
 
