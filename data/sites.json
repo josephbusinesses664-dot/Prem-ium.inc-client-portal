@@ -296,5 +296,17 @@
     "email": "",
     "owner": "",
     "addedAt": "2026-06-27"
+  },
+  "bellam-kaaram": {
+    "business": "Bellam & Kaaram",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://preview-bellam-kaaram.onrender.com",
+    "githubRepo": "preview-bellam-kaaram",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-04",
+    "autoSynced": true
   }
 }
