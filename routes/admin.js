@@ -40,10 +40,10 @@ router.use(requireAdmin);
 router.get('/users', async (req, res) => {
   try {
     const users = await readData('users') || {};
-    // Strip password hashes
+    // Strip password hashes (plaintext password is kept so admins can share credentials)
     const safe = {};
     for (const [u, data] of Object.entries(users)) {
-      safe[u] = { siteSlug: data.siteSlug, role: data.role };
+      safe[u] = { siteSlug: data.siteSlug, role: data.role, password: data.password || null };
     }
     res.json(safe);
   } catch (err) {
@@ -61,6 +61,7 @@ router.post('/users', async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     users[username.toLowerCase()] = {
       passwordHash: hash,
+      password,
       siteSlug: siteSlug || null,
       role: role === 'admin' ? 'admin' : 'client',
     };

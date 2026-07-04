@@ -6,39 +6,39 @@
 <title>Login — prem-ium.inc</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0a0618; color: #e2e8f0; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
-  header { background: #0f1516; border-bottom: 1px solid #1e3a3f; padding: 16px 24px; }
-  .logo { font-size: 20px; font-weight: 800; color: #06b6d4; text-decoration: none; }
-  .logo span { color: #f59e0b; }
+  body { background: #0a120e; color: #e2e8f0; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  header { background: #0f1712; border-bottom: 1px solid #1e3a2b; padding: 16px 24px; }
+  .logo { font-size: 20px; font-weight: 800; color: #ec4899; text-decoration: none; }
+  .logo span { color: #f472b6; }
   .center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 16px; }
-  .box { background: #1a2a2d; border: 1px solid #1e3a3f; border-radius: 14px; padding: 40px; width: 100%; max-width: 380px; }
+  .box { background: #14241b; border: 1px solid #1e3a2b; border-radius: 14px; padding: 40px; width: 100%; max-width: 380px; }
   h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
   .sub { color: #9ca3af; font-size: 14px; margin-bottom: 28px; }
-  label { display: block; font-size: 13px; font-weight: 600; color: #06b6d4; margin-bottom: 6px; }
-  input { width: 100%; background: #0f1516; border: 1px solid #0d5c66; border-radius: 8px; padding: 11px 14px; color: #e2e8f0; font-size: 14px; margin-bottom: 18px; outline: none; }
-  input:focus { border-color: #06b6d4; }
-  .btn { width: 100%; background: #06b6d4; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; }
-  .btn:hover { background: #0d98ac; }
-  .btn:disabled { background: #0d5c66; cursor: not-allowed; }
+  label { display: block; font-size: 13px; font-weight: 600; color: #10b981; margin-bottom: 6px; }
+  input { width: 100%; background: #0f1712; border: 1px solid #14532d; border-radius: 8px; padding: 11px 14px; color: #e2e8f0; font-size: 14px; margin-bottom: 18px; outline: none; }
+  input:focus { border-color: #10b981; }
+  .btn { width: 100%; background: #10b981; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; }
+  .btn:hover { background: #059669; }
+  .btn:disabled { background: #14532d; cursor: not-allowed; }
   .error { color: #f87171; font-size: 13px; margin-top: 12px; text-align: center; min-height: 18px; }
   .back { text-align: center; margin-top: 20px; font-size: 13px; color: #6b7280; }
   .back a { color: #a78bfa; text-decoration: none; }
 
   /* ── Seasoning ── */
-  ::selection { background: rgba(6,182,212,.35); color: #fff; }
+  ::selection { background: rgba(16,185,129,.35); color: #fff; }
   body::before {
     content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
     background:
-      radial-gradient(500px 380px at 80% 10%, rgba(6,182,212,.16), transparent 70%),
+      radial-gradient(500px 380px at 80% 10%, rgba(16,185,129,.16), transparent 70%),
       radial-gradient(420px 320px at 10% 85%, rgba(245,158,11,.1), transparent 70%);
   }
   .center { position: relative; z-index: 1; }
-  .box { box-shadow: 0 18px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(6,182,212,.12); }
+  .box { box-shadow: 0 18px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(16,185,129,.12); }
   input { transition: border-color .2s, box-shadow .2s; }
-  input:hover { border-color: rgba(6,182,212,.6); box-shadow: 0 0 12px rgba(6,182,212,.14); }
-  input:focus { box-shadow: 0 0 0 3px rgba(6,182,212,.18), 0 0 20px rgba(6,182,212,.3), 0 0 40px rgba(245,158,11,.12); }
-  .btn { background: linear-gradient(135deg, #06b6d4, #f59e0b); transition: transform .18s, box-shadow .18s; }
-  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(6,182,212,.42); }
+  input:hover { border-color: rgba(16,185,129,.6); box-shadow: 0 0 12px rgba(16,185,129,.14); }
+  input:focus { box-shadow: 0 0 0 3px rgba(16,185,129,.18), 0 0 20px rgba(16,185,129,.3), 0 0 40px rgba(245,158,11,.12); }
+  .btn { background: linear-gradient(135deg, #10b981, #f59e0b); transition: transform .18s, box-shadow .18s; }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(16,185,129,.42); }
 </style>
 </head>
 <body>

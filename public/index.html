@@ -6,54 +6,54 @@
 <title>prem-ium.inc Client Portal</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0a0618; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; }
+  body { background: #0a120e; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; }
   ::selection { background: rgba(124,58,237,.35); color: #fff; }
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #0a0618; }
+  ::-webkit-scrollbar-track { background: #0a120e; }
   ::-webkit-scrollbar-thumb { background: #2d1f5e; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+  ::-webkit-scrollbar-thumb:hover { background: #10b981; }
   body::before {
     content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
     background:
-      radial-gradient(600px 400px at 85% -5%, rgba(6,182,212,.14), transparent 70%),
+      radial-gradient(600px 400px at 85% -5%, rgba(16,185,129,.14), transparent 70%),
       radial-gradient(500px 350px at -5% 40%, rgba(245,158,11,.08), transparent 70%);
   }
   header, main, footer { position: relative; z-index: 1; }
-  header { background: rgba(15,10,30,.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid #1e3a3f; padding: 18px 32px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10; }
-  .logo { font-size: 22px; font-weight: 800; color: #06b6d4; letter-spacing: -0.5px; }
-  .logo span { color: #f59e0b; }
+  header { background: rgba(15,10,30,.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid #1e3a2b; padding: 18px 32px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10; }
+  .logo { font-size: 22px; font-weight: 800; color: #ec4899; letter-spacing: -0.5px; }
+  .logo span { color: #f472b6; }
   .tagline { font-size: 13px; color: #6b7280; margin-left: auto; }
-  .login-btn { background: linear-gradient(135deg, #06b6d4, #f59e0b); color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; transition: transform .18s, box-shadow .18s; }
-  .login-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(6,182,212,.4); }
+  .login-btn { background: linear-gradient(135deg, #10b981, #f59e0b); color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; transition: transform .18s, box-shadow .18s; }
+  .login-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(16,185,129,.4); }
   main { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
   h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
   .subtitle { color: #9ca3af; margin-bottom: 36px; font-size: 15px; }
-  .search { width: 100%; max-width: 400px; background: #1a2a2d; border: 1px solid #0d5c66; border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px; margin-bottom: 28px; outline: none; transition: border-color .2s, box-shadow .2s; }
-  .search:hover { border-color: rgba(6,182,212,.6); box-shadow: 0 0 12px rgba(6,182,212,.15); }
-  .search:focus { border-color: #06b6d4; box-shadow: 0 0 0 3px rgba(6,182,212,.18), 0 0 20px rgba(6,182,212,.3), 0 0 40px rgba(245,158,11,.12); }
+  .search { width: 100%; max-width: 400px; background: #14241b; border: 1px solid #14532d; border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px; margin-bottom: 28px; outline: none; transition: border-color .2s, box-shadow .2s; }
+  .search:hover { border-color: rgba(16,185,129,.6); box-shadow: 0 0 12px rgba(16,185,129,.15); }
+  .search:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.18), 0 0 20px rgba(16,185,129,.3), 0 0 40px rgba(245,158,11,.12); }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-  .card { background: #1a2a2d; border: 1px solid #1e3a3f; border-radius: 12px; padding: 22px; transition: border-color .25s, transform .25s, box-shadow .25s; cursor: pointer; position: relative; overflow: hidden; opacity: 0; transform: translateY(18px); animation: cardIn .55s ease forwards; }
-  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #06b6d4, #f59e0b); opacity: 0; transition: opacity .25s; }
-  .card:hover { border-color: #06b6d4; transform: translateY(-4px); box-shadow: 0 10px 36px rgba(6,182,212,.22); }
+  .card { background: #14241b; border: 1px solid #1e3a2b; border-radius: 12px; padding: 22px; transition: border-color .25s, transform .25s, box-shadow .25s; cursor: pointer; position: relative; overflow: hidden; opacity: 0; transform: translateY(18px); animation: cardIn .55s ease forwards; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #10b981, #f59e0b); opacity: 0; transition: opacity .25s; }
+  .card:hover { border-color: #10b981; transform: translateY(-4px); box-shadow: 0 10px 36px rgba(16,185,129,.22); }
   .card:hover::before { opacity: 1; }
   @keyframes cardIn { to { opacity: 1; transform: none; } }
-  .card-badge { font-size: 11px; font-weight: 600; background: #0d5c66; color: #06b6d4; padding: 3px 8px; border-radius: 99px; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .card-badge { font-size: 11px; font-weight: 600; background: #14532d; color: #10b981; padding: 3px 8px; border-radius: 99px; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px; }
   .card-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
   .card-city { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
   .card-actions { display: flex; gap: 8px; }
-  .btn-view { flex: 1; background: #0f2426; border: 1px solid #0d5c66; color: #06b6d4; padding: 8px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; display: block; }
-  .btn-view:hover { background: #0d3840; }
-  .btn-edit { flex: 1; background: #06b6d4; color: #fff; border: none; padding: 8px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; display: block; }
-  .btn-edit:hover { background: #0d98ac; }
+  .btn-view { flex: 1; background: #10251a; border: 1px solid #14532d; color: #10b981; padding: 8px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; display: block; }
+  .btn-view:hover { background: #163526; }
+  .btn-edit { flex: 1; background: #10b981; color: #fff; border: none; padding: 8px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; display: block; }
+  .btn-edit:hover { background: #059669; }
   .empty { color: #6b7280; text-align: center; padding: 60px 0; }
   .loading { color: #6b7280; text-align: center; padding: 60px 0; }
   footer { text-align: center; padding: 32px; color: #4b5563; font-size: 12px; }
 </style>
 </head>
 <body>
-<div id="splash-overlay" style="position:fixed;inset:0;background:#0a0618;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:1">
+<div id="splash-overlay" style="position:fixed;inset:0;background:#0a120e;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:1">
   <div id="splash-grid" style="display:grid;grid-template-columns:repeat(21,13px);gap:3px;margin-bottom:60px"></div>
-  <div id="splash-text" style="color:#06b6d4;font-size:18px;font-weight:700;letter-spacing:1px;opacity:0">prem-ium.inc</div>
+  <div id="splash-text" style="color:#ec4899;font-size:18px;font-weight:700;letter-spacing:1px;opacity:0">prem-ium.inc</div>
 </div>
 <header>
   <div class="logo">prem-ium<span>.inc</span></div>
@@ -73,27 +73,26 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
 const SPADE_PATTERN = [
-  [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-  [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-  [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-  [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
-  [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-  [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-  [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-  [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
-  [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-  [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-  [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
-  [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0]
+  [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+  [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+  [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+  [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+  [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [0,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,0],
+  [0,0,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,0,0],
+  [0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0],
+  [0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0]
 ];
 
 function initSplash() {
@@ -106,7 +105,7 @@ function initSplash() {
     row.forEach((cell, c) => {
       if (cell) {
         const div = document.createElement('div');
-        div.style.cssText = `width:13px;height:13px;background:#06b6d4;border-radius:2px;opacity:0;transform:scale(0.8)`;
+        div.style.cssText = `width:13px;height:13px;background:#10b981;border-radius:2px;opacity:0;transform:scale(0.8)`;
         grid.appendChild(div);
         cells.push({ el: div, r, c });
       }
@@ -116,43 +115,44 @@ function initSplash() {
   const tl = gsap.timeline();
   const overlay = document.getElementById('splash-overlay');
 
-  // Build spade brick by brick from center
+  // Build spade brick by brick from the center outward
   tl.to(cells.map(x => x.el), {
     opacity: 1,
     scale: 1,
-    duration: 0.3,
-    stagger: { amount: 1.2, grid: [21, 21], from: 'center' }
+    duration: 0.35,
+    stagger: { amount: 2.0, grid: [20, 21], from: 'center' }
   });
 
-  // Text fade in
-  tl.to('#splash-text', { opacity: 1, duration: 0.4 }, '-=0.4');
+  // Text fade in while the last bricks land
+  tl.to('#splash-text', { opacity: 1, y: 0, duration: 0.6 }, '-=0.5');
 
-  // Hold
-  tl.to({}, { duration: 1.4 });
+  // Hold the finished spade on screen
+  tl.to({}, { duration: 2.2 });
 
-  // Break apart: scatter bricks outward
+  // Break apart on its own — bricks drift out, tumble, and fall
   tl.to(cells.map(x => x.el), {
     opacity: 0,
     x: (i) => {
       const cell = cells[i];
       const dx = cell.c - 10;
-      return dx * (8 + Math.random() * 4);
+      return dx * (10 + Math.random() * 6) + (Math.random() - 0.5) * 40;
     },
     y: (i) => {
       const cell = cells[i];
-      const dy = cell.r - 10;
-      return dy * (8 + Math.random() * 4) - 100 - Math.random() * 50;
+      const dy = cell.r - 9;
+      return dy * (10 + Math.random() * 6) + 160 + Math.random() * 120;
     },
-    rotation: (i) => 180 + Math.random() * 90,
-    duration: 0.8,
-    ease: 'back.in'
-  }, '-=0.2');
+    rotation: () => (Math.random() - 0.5) * 360,
+    duration: 1.5,
+    ease: 'power2.in',
+    stagger: { amount: 0.5, from: 'random' }
+  });
 
-  // Text fade out with scatter
-  tl.to('#splash-text', { opacity: 0, y: -80, duration: 0.6 }, '-=0.6');
+  // Text breaks away and falls too
+  tl.to('#splash-text', { opacity: 0, y: 120, rotation: 6, duration: 1.1, ease: 'power2.in' }, '-=1.6');
 
   // Fade overlay
-  tl.to(overlay, { opacity: 0, duration: 0.4, onComplete: () => overlay.remove() }, '-=0.3');
+  tl.to(overlay, { opacity: 0, duration: 0.6, onComplete: () => overlay.remove() }, '-=0.5');
 }
 
 let allSites = {};
