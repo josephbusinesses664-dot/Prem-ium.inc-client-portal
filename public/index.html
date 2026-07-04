@@ -101,26 +101,29 @@ function initSplash() {
 
   const grid = document.getElementById('splash-grid');
   const cells = [];
+  // Every grid slot gets a div so the CSS grid keeps real positions —
+  // only spade cells are visible and animated.
   SPADE_PATTERN.forEach((row, r) => {
     row.forEach((cell, c) => {
+      const div = document.createElement('div');
       if (cell) {
-        const div = document.createElement('div');
-        div.style.cssText = `width:13px;height:13px;background:#10b981;border-radius:2px;opacity:0;transform:scale(0.8)`;
-        grid.appendChild(div);
+        div.style.cssText = 'width:13px;height:13px;background:#10b981;border-radius:2px;opacity:0;transform:scale(0.8)';
         cells.push({ el: div, r, c });
+      } else {
+        div.style.cssText = 'width:13px;height:13px;visibility:hidden';
       }
+      grid.appendChild(div);
     });
   });
 
   const tl = gsap.timeline();
   const overlay = document.getElementById('splash-overlay');
 
-  // Build spade brick by brick from the center outward
-  tl.to(cells.map(x => x.el), {
-    opacity: 1,
-    scale: 1,
-    duration: 0.35,
-    stagger: { amount: 2.0, grid: [20, 21], from: 'center' }
+  // Build spade brick by brick, radiating out from the center of the shape
+  const CR = 9.5, CC = 10;
+  cells.forEach(cell => {
+    const dist = Math.hypot(cell.r - CR, cell.c - CC);
+    tl.to(cell.el, { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(2)' }, dist * 0.13);
   });
 
   // Text fade in while the last bricks land
