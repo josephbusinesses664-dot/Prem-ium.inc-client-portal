@@ -11,18 +11,22 @@
   const toolbar = Object.assign(document.createElement('div'), {
     id: 'oc-toolbar',
     innerHTML: `
-      <span style="font-weight:700;letter-spacing:.5px;color:#a78bfa">&#9998; Edit Mode</span>
-      <span style="opacity:.6;font-size:12px">Click any highlighted element to edit it</span>
+      <span style="font-weight:700;letter-spacing:.5px;color:#34d399">&#9998; Edit My Site</span>
+      <span style="display:inline-flex;background:#0a120e;border:1px solid #1e3a2b;border-radius:8px;padding:2px;gap:2px">
+        <span style="background:#10b981;color:#fff;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600">Content</span>
+        <a href="/customize" style="color:#34d399;text-decoration:none;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600">&#10022; Animations &amp; Effects</a>
+      </span>
+      <span style="opacity:.6;font-size:12px">Click any highlighted element to edit its text or image</span>
       <span id="oc-save-status" style="font-size:12px;color:#86efac"></span>
       <a href="/dashboard" style="margin-left:auto;color:#f87171;text-decoration:none;font-size:13px">&#10005; Exit</a>
     `,
   });
   Object.assign(toolbar.style, {
     position: 'fixed', top: '0', left: '0', right: '0', zIndex: '2147483647',
-    background: '#0f0a1e', color: '#e2e8f0', padding: '10px 18px',
+    background: '#0f1712', color: '#e2e8f0', padding: '10px 18px',
     display: 'flex', alignItems: 'center', gap: '16px',
     fontFamily: 'system-ui,sans-serif', fontSize: '13px',
-    boxShadow: '0 2px 12px rgba(0,0,0,.6)', borderBottom: '1px solid #2d1f5e',
+    boxShadow: '0 2px 12px rgba(0,0,0,.6)', borderBottom: '1px solid #1e3a2b',
   });
   document.body.prepend(toolbar);
   document.body.style.paddingTop = '44px';
@@ -44,9 +48,16 @@
       <input type="file" id="oc-file" accept="image/*" style="margin-top:4px;width:100%;color:#e2e8f0">
     </div>
     <div style="display:flex;gap:8px;margin-top:12px">
-      <button id="oc-save" style="flex:1;background:#7c3aed;color:#fff;border:none;border-radius:6px;padding:8px;cursor:pointer;font-size:13px;font-weight:600">Save Edit</button>
-      <button id="oc-request" style="flex:1;background:#1e3a5f;color:#93c5fd;border:1px solid #3b82f6;border-radius:6px;padding:8px;cursor:pointer;font-size:13px">Request Change</button>
+      <button id="oc-save" style="flex:1;background:#10b981;color:#fff;border:none;border-radius:6px;padding:8px;cursor:pointer;font-size:13px;font-weight:600">Save Edit</button>
+      <button id="oc-request" style="flex:1;background:#0f2a24;color:#34d399;border:1px solid #10b981;border-radius:6px;padding:8px;cursor:pointer;font-size:13px">Request Change</button>
       <button id="oc-cancel" style="background:none;color:#9ca3af;border:none;cursor:pointer;font-size:18px;padding:0 4px" title="Cancel">&#x2715;</button>
+    </div>
+    <div style="border-top:1px solid #1e3a2b;margin-top:12px;padding-top:12px">
+      <div style="font-size:11px;color:#9ca3af;margin-bottom:8px">Extend this section — reuses the same layout &amp; borders</div>
+      <div style="display:flex;gap:8px">
+        <button id="oc-duplicate" style="flex:1;background:#0f2a24;color:#34d399;border:1px solid #10b981;border-radius:6px;padding:8px;cursor:pointer;font-size:13px;font-weight:600">&#10133; Add another like this</button>
+        <button id="oc-remove" style="background:none;color:#f87171;border:1px solid #7f1d1d;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:13px" title="Delete this item">&#128465;</button>
+      </div>
     </div>
   `;
   document.body.appendChild(panel);
@@ -174,6 +185,34 @@
       saveBtn.textContent = 'Save Edit';
       saveBtn.disabled = false;
     }
+  });
+
+  // ── Duplicate / remove section items ──────────────────────────────────────────
+
+  async function sectionAction(kind) {
+    if (!activeOcId) return;
+    const status = document.getElementById('oc-save-status');
+    status.style.color = '#86efac';
+    status.textContent = kind === 'duplicate' ? 'Adding…' : 'Removing…';
+    try {
+      const r = await fetch(`/api/sites/${slug}/${kind}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ocId: activeOcId }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Failed');
+      status.textContent = kind === 'duplicate' ? '✓ Added — reloading…' : '✓ Removed — reloading…';
+      // Reload so the new/removed item gets fresh oc-ids and is editable
+      setTimeout(() => location.reload(), 700);
+    } catch (err) {
+      status.style.color = '#f87171';
+      status.textContent = '⚠ ' + err.message;
+    }
+  }
+  document.getElementById('oc-duplicate').addEventListener('click', () => sectionAction('duplicate'));
+  document.getElementById('oc-remove').addEventListener('click', () => {
+    if (confirm('Delete this item from your site?')) sectionAction('remove');
   });
 
   // ── Change request ────────────────────────────────────────────────────────────

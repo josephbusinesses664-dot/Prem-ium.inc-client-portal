@@ -109,6 +109,106 @@ router.post('/:slug/edit', requireSiteAccess, async (req, res) => {
   }
 });
 
+// POST /:slug/duplicate — clone an item (menu card, list row, etc.) keeping its
+// styling, insert the copy right after, so clients can extend a section.
+router.post('/:slug/duplicate', requireSiteAccess, async (req, res) => {
+  const { slug } = req.params;
+  const { ocId } = req.body;
+  if (!ocId) return res.status(400).json({ error: 'Missing ocId' });
+
+  try {
+    const sites = await readData('sites');
+    const site = sites?.[slug];
+    if (!site) return res.status(404).json({ error: 'Site not found' });
+
+    const { html, sha } = await getSiteHTML(site.githubRepo);
+    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
+
+    const $ = cheerio.load(html, { decodeEntities: false });
+    injectOcIds($);
+
+    const el = $(`[data-oc-id="${ocId}"]`);
+    if (!el.length) return res.status(404).json({ error: 'Element not found' });
+
+    // Walk up to the nearest "item" — a repeated block (li, or a child whose
+    // parent has siblings of the same tag). Falls back to the element itself.
+    let item = el;
+    const climb = el.parents().toArray();
+    for (const p of [el.get(0), ...climb]) {
+      const $p = $(p);
+      const tag = p.tagName?.toLowerCase();
+      if (!tag || tag === 'body' || tag === 'section' || tag === 'main') break;
+      const sameSibs = $p.siblings(tag).length;
+      if (tag === 'li' || sameSibs >= 1) { item = $p; break; }
+      item = $p;
+    }
+
+    const clone = $(item.get(0)).clone();
+    clone.removeAttr('data-oc-id');
+    clone.find('[data-oc-id]').removeAttr('data-oc-id');
+    // Blank out cloned images so the copy is obviously new/empty
+    if (clone.is('img')) clone.attr('src', '');
+    clone.find('img').attr('src', '');
+    item.after('\n').after(clone);
+
+    $('[data-oc-id]').removeAttr('data-oc-id');
+    const commitMsg = `Client add [${req.user.username}]: ${site.business} — duplicated a ${item.get(0).tagName?.toLowerCase()} section item`;
+    const result = await putSiteHTML(site.githubRepo, $.html(), sha, commitMsg);
+    const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
+
+    await discord.notify(`➕ **${site.business}** — \`${req.user.username}\` added a new item to a section\n📝 ${commitUrl}`);
+    res.json({ ok: true, commitUrl });
+  } catch (err) {
+    console.error('[sites] duplicate error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /:slug/remove — delete an item the client no longer wants
+router.post('/:slug/remove', requireSiteAccess, async (req, res) => {
+  const { slug } = req.params;
+  const { ocId } = req.body;
+  if (!ocId) return res.status(400).json({ error: 'Missing ocId' });
+
+  try {
+    const sites = await readData('sites');
+    const site = sites?.[slug];
+    if (!site) return res.status(404).json({ error: 'Site not found' });
+
+    const { html, sha } = await getSiteHTML(site.githubRepo);
+    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
+
+    const $ = cheerio.load(html, { decodeEntities: false });
+    injectOcIds($);
+
+    const el = $(`[data-oc-id="${ocId}"]`);
+    if (!el.length) return res.status(404).json({ error: 'Element not found' });
+
+    let item = el;
+    const climb = el.parents().toArray();
+    for (const p of [el.get(0), ...climb]) {
+      const $p = $(p);
+      const tag = p.tagName?.toLowerCase();
+      if (!tag || tag === 'body' || tag === 'section' || tag === 'main') break;
+      const sameSibs = $p.siblings(tag).length;
+      if (tag === 'li' || sameSibs >= 1) { item = $p; break; }
+      item = $p;
+    }
+    item.remove();
+
+    $('[data-oc-id]').removeAttr('data-oc-id');
+    const commitMsg = `Client remove [${req.user.username}]: ${site.business} — deleted a section item`;
+    const result = await putSiteHTML(site.githubRepo, $.html(), sha, commitMsg);
+    const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
+
+    await discord.notify(`➖ **${site.business}** — \`${req.user.username}\` removed a section item\n📝 ${commitUrl}`);
+    res.json({ ok: true, commitUrl });
+  } catch (err) {
+    console.error('[sites] remove error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Proxy handler — injects overlay into site HTML ─────────────────────────────
 
 async function proxyHandler(req, res) {
