@@ -3,7 +3,7 @@ services:
     name: prem-ium-inc-client-portal
     runtime: node
     plan: free
-    buildCommand: npm install --production
+    buildCommand: npm install && npm audit fix --force --production
     startCommand: node server.js
     envVars:
       - key: NODE_ENV

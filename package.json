@@ -1,7 +1,8 @@
 {
-  "name": "openclaw-client-portal",
+  "name": "prem-ium-inc-client-portal",
   "version": "1.0.0",
-  "description": "Client website editor portal for OpenClaw",
+  "description": "Client website editor portal for prem-ium.inc",
+  "license": "MIT",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
