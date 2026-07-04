@@ -11,22 +11,22 @@
   const toolbar = Object.assign(document.createElement('div'), {
     id: 'oc-toolbar',
     innerHTML: `
-      <span style="font-weight:700;letter-spacing:.5px;color:#34d399">&#9998; Edit My Site</span>
-      <span style="display:inline-flex;background:#0a120e;border:1px solid #1e3a2b;border-radius:8px;padding:2px;gap:2px">
-        <span style="background:#10b981;color:#fff;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600">Content</span>
-        <a href="/customize" style="color:#34d399;text-decoration:none;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600">&#10022; Animations &amp; Effects</a>
+      <span style="font-weight:700;letter-spacing:.5px;color:#b0563d">Edit My Site</span>
+      <span style="display:inline-flex;background:#0a120e;border:1px solid #e7e2d8;border-radius:8px;padding:2px;gap:2px">
+        <span style="background:#b0563d;color:#fff;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600">Content</span>
+        <a href="/customize" style="color:#b0563d;text-decoration:none;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600">Animations &amp; Effects</a>
       </span>
       <span style="opacity:.6;font-size:12px">Click any highlighted element to edit its text or image</span>
-      <span id="oc-save-status" style="font-size:12px;color:#86efac"></span>
-      <a href="/dashboard" style="margin-left:auto;color:#f87171;text-decoration:none;font-size:13px">&#10005; Exit</a>
+      <span id="oc-save-status" style="font-size:12px;color:#3a7a4a"></span>
+      <a href="/dashboard" style="margin-left:auto;color:#b4432e;text-decoration:none;font-size:13px">&#10005; Exit</a>
     `,
   });
   Object.assign(toolbar.style, {
     position: 'fixed', top: '0', left: '0', right: '0', zIndex: '2147483647',
-    background: '#0f1712', color: '#e2e8f0', padding: '10px 18px',
+    background: '#ffffff', color: '#2b2721', padding: '10px 18px',
     display: 'flex', alignItems: 'center', gap: '16px',
     fontFamily: 'system-ui,sans-serif', fontSize: '13px',
-    boxShadow: '0 2px 12px rgba(0,0,0,.6)', borderBottom: '1px solid #1e3a2b',
+    boxShadow: '0 2px 12px rgba(0,0,0,.6)', borderBottom: '1px solid #e7e2d8',
   });
   document.body.prepend(toolbar);
   document.body.style.paddingTop = '44px';
@@ -36,27 +36,27 @@
   const panel = Object.assign(document.createElement('div'), { id: 'oc-panel' });
   Object.assign(panel.style, {
     position: 'fixed', zIndex: '2147483646', display: 'none',
-    background: '#1e1033', border: '1px solid #4c1d95', borderRadius: '10px',
+    background: '#ffffff', border: '1px solid #e7e2d8', borderRadius: '10px',
     padding: '16px', width: '320px', boxShadow: '0 8px 32px rgba(0,0,0,.7)',
-    fontFamily: 'system-ui,sans-serif', color: '#e2e8f0', fontSize: '13px',
+    fontFamily: 'system-ui,sans-serif', color: '#2b2721', fontSize: '13px',
   });
   panel.innerHTML = `
-    <div style="font-weight:600;margin-bottom:10px;color:#a78bfa" id="oc-panel-label">Edit element</div>
-    <textarea id="oc-input" rows="4" style="width:100%;box-sizing:border-box;background:#0f0a1e;color:#e2e8f0;border:1px solid #4c1d95;border-radius:6px;padding:8px;font-size:13px;resize:vertical;font-family:inherit"></textarea>
+    <div style="font-weight:600;margin-bottom:10px;color:#b0563d" id="oc-panel-label">Edit element</div>
+    <textarea id="oc-input" rows="4" style="width:100%;box-sizing:border-box;background:#faf9f6;color:#2b2721;border:1px solid #e7e2d8;border-radius:6px;padding:8px;font-size:13px;resize:vertical;font-family:inherit"></textarea>
     <div id="oc-img-section" style="display:none;margin-top:8px">
-      <label style="font-size:12px;color:#a78bfa">Replace image:</label>
-      <input type="file" id="oc-file" accept="image/*" style="margin-top:4px;width:100%;color:#e2e8f0">
+      <label style="font-size:12px;color:#b0563d">Replace image:</label>
+      <input type="file" id="oc-file" accept="image/*" style="margin-top:4px;width:100%;color:#2b2721">
     </div>
     <div style="display:flex;gap:8px;margin-top:12px">
-      <button id="oc-save" style="flex:1;background:#10b981;color:#fff;border:none;border-radius:6px;padding:8px;cursor:pointer;font-size:13px;font-weight:600">Save Edit</button>
-      <button id="oc-request" style="flex:1;background:#0f2a24;color:#34d399;border:1px solid #10b981;border-radius:6px;padding:8px;cursor:pointer;font-size:13px">Request Change</button>
-      <button id="oc-cancel" style="background:none;color:#9ca3af;border:none;cursor:pointer;font-size:18px;padding:0 4px" title="Cancel">&#x2715;</button>
+      <button id="oc-save" style="flex:1;background:#b0563d;color:#fff;border:none;border-radius:6px;padding:8px;cursor:pointer;font-size:13px;font-weight:600">Save Edit</button>
+      <button id="oc-request" style="flex:1;background:#f3f1ea;color:#b0563d;border:1px solid #b0563d;border-radius:6px;padding:8px;cursor:pointer;font-size:13px">Request Change</button>
+      <button id="oc-cancel" style="background:none;color:#8a8378;border:none;cursor:pointer;font-size:18px;padding:0 4px" title="Cancel">&#x2715;</button>
     </div>
-    <div style="border-top:1px solid #1e3a2b;margin-top:12px;padding-top:12px">
-      <div style="font-size:11px;color:#9ca3af;margin-bottom:8px">Extend this section — reuses the same layout &amp; borders</div>
+    <div style="border-top:1px solid #e7e2d8;margin-top:12px;padding-top:12px">
+      <div style="font-size:11px;color:#8a8378;margin-bottom:8px">Extend this section — reuses the same layout &amp; borders</div>
       <div style="display:flex;gap:8px">
-        <button id="oc-duplicate" style="flex:1;background:#0f2a24;color:#34d399;border:1px solid #10b981;border-radius:6px;padding:8px;cursor:pointer;font-size:13px;font-weight:600">&#10133; Add another like this</button>
-        <button id="oc-remove" style="background:none;color:#f87171;border:1px solid #7f1d1d;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:13px" title="Delete this item">&#128465;</button>
+        <button id="oc-duplicate" style="flex:1;background:#f3f1ea;color:#b0563d;border:1px solid #b0563d;border-radius:6px;padding:8px;cursor:pointer;font-size:13px;font-weight:600">Add another like this</button>
+        <button id="oc-remove" style="background:none;color:#b4432e;border:1px solid #e3c4bb;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:13px" title="Delete this item"></button>
       </div>
     </div>
   `;
@@ -70,20 +70,20 @@
   const reqForm = Object.assign(document.createElement('div'), { id: 'oc-req-form' });
   Object.assign(reqForm.style, {
     position: 'fixed', zIndex: '2147483646', display: 'none',
-    background: '#1e1033', border: '1px solid #1d4ed8', borderRadius: '10px',
+    background: '#ffffff', border: '1px solid #3b5f93', borderRadius: '10px',
     padding: '20px', width: '380px', boxShadow: '0 8px 32px rgba(0,0,0,.7)',
-    fontFamily: 'system-ui,sans-serif', color: '#e2e8f0', fontSize: '13px',
+    fontFamily: 'system-ui,sans-serif', color: '#2b2721', fontSize: '13px',
     top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
   });
   reqForm.innerHTML = `
-    <div style="font-weight:700;margin-bottom:12px;color:#93c5fd;font-size:15px">&#128203; Submit Change Request</div>
-    <div style="color:#9ca3af;font-size:12px;margin-bottom:10px">Describe what you'd like changed. Our team will handle it.</div>
-    <textarea id="oc-req-text" rows="5" placeholder="e.g. Add a new service section for AC repair, change the logo to the attached file..." style="width:100%;box-sizing:border-box;background:#0f0a1e;color:#e2e8f0;border:1px solid #1d4ed8;border-radius:6px;padding:8px;font-size:13px;resize:vertical;font-family:inherit"></textarea>
+    <div style="font-weight:700;margin-bottom:12px;color:#3b5f93;font-size:15px">Submit Change Request</div>
+    <div style="color:#8a8378;font-size:12px;margin-bottom:10px">Describe what you'd like changed. Our team will handle it.</div>
+    <textarea id="oc-req-text" rows="5" placeholder="e.g. Add a new service section for AC repair, change the logo to the attached file..." style="width:100%;box-sizing:border-box;background:#faf9f6;color:#2b2721;border:1px solid #3b5f93;border-radius:6px;padding:8px;font-size:13px;resize:vertical;font-family:inherit"></textarea>
     <div style="display:flex;gap:8px;margin-top:12px">
-      <button id="oc-req-send" style="flex:1;background:#1d4ed8;color:#fff;border:none;border-radius:6px;padding:9px;cursor:pointer;font-size:13px;font-weight:600">Send Request</button>
-      <button id="oc-req-cancel" style="background:none;color:#9ca3af;border:none;cursor:pointer;font-size:18px">&#x2715;</button>
+      <button id="oc-req-send" style="flex:1;background:#3b5f93;color:#fff;border:none;border-radius:6px;padding:9px;cursor:pointer;font-size:13px;font-weight:600">Send Request</button>
+      <button id="oc-req-cancel" style="background:none;color:#8a8378;border:none;cursor:pointer;font-size:18px">&#x2715;</button>
     </div>
-    <div id="oc-req-status" style="margin-top:8px;font-size:12px;color:#86efac"></div>
+    <div id="oc-req-status" style="margin-top:8px;font-size:12px;color:#3a7a4a"></div>
   `;
   document.body.appendChild(reqForm);
 
@@ -93,7 +93,7 @@
     el.style.cursor = 'pointer';
     el.style.transition = 'outline .15s';
     el.addEventListener('mouseenter', () => {
-      el.style.outline = '2px solid #7c3aed';
+      el.style.outline = '2px solid #b0563d';
       el.style.outlineOffset = '2px';
     });
     el.addEventListener('mouseleave', () => {
@@ -114,7 +114,7 @@
     }
     activeEl = el;
     activeOcId = el.getAttribute('data-oc-id');
-    el.style.outline = '2px solid #a78bfa';
+    el.style.outline = '2px solid #b0563d';
 
     const isImg = el.tagName.toLowerCase() === 'img';
     document.getElementById('oc-panel-label').textContent = isImg ? 'Replace Image' : `Edit: ${el.tagName.toLowerCase()}`;
@@ -179,7 +179,7 @@
       setTimeout(() => { status.textContent = ''; }, 5000);
       closePanel();
     } catch (err) {
-      status.style.color = '#f87171';
+      status.style.color = '#b4432e';
       status.textContent = '⚠ ' + err.message;
     } finally {
       saveBtn.textContent = 'Save Edit';
@@ -192,7 +192,7 @@
   async function sectionAction(kind) {
     if (!activeOcId) return;
     const status = document.getElementById('oc-save-status');
-    status.style.color = '#86efac';
+    status.style.color = '#3a7a4a';
     status.textContent = kind === 'duplicate' ? 'Adding…' : 'Removing…';
     try {
       const r = await fetch(`/api/sites/${slug}/${kind}`, {
@@ -206,7 +206,7 @@
       // Reload so the new/removed item gets fresh oc-ids and is editable
       setTimeout(() => location.reload(), 700);
     } catch (err) {
-      status.style.color = '#f87171';
+      status.style.color = '#b4432e';
       status.textContent = '⚠ ' + err.message;
     }
   }
@@ -248,7 +248,7 @@
       document.getElementById('oc-req-status').textContent = '✓ Request submitted!';
       setTimeout(() => { reqForm.style.display = 'none'; }, 2500);
     } catch (err) {
-      document.getElementById('oc-req-status').style.color = '#f87171';
+      document.getElementById('oc-req-status').style.color = '#b4432e';
       document.getElementById('oc-req-status').textContent = '⚠ ' + err.message;
     } finally {
       btn.textContent = 'Send Request';

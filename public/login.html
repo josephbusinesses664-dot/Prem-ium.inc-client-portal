@@ -3,51 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23ec4899' d='M50 12C50 12 22 40 22 60a16 16 0 0027 12c-1 9-6 13-12 16h26c-6-3-11-7-12-16a16 16 0 0027-12C78 40 50 12 50 12z'/></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23b0563d' d='M50 12C50 12 22 40 22 60a16 16 0 0027 12c-1 9-6 13-12 16h26c-6-3-11-7-12-16a16 16 0 0027-12C78 40 50 12 50 12z'/></svg>">
 <title>Login — prem-ium.inc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0a120e; color: #e2e8f0; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
-  header { background: #0f1712; border-bottom: 1px solid #1e3a2b; padding: 16px 24px; }
-  .logo { font-size: 20px; font-weight: 800; color: #ec4899; text-decoration: none; }
-  .logo span { color: #f472b6; }
-  .center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 16px; }
-  .box { background: #14241b; border: 1px solid #1e3a2b; border-radius: 14px; padding: 40px; width: 100%; max-width: 380px; }
-  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-  .sub { color: #9ca3af; font-size: 14px; margin-bottom: 28px; }
-  label { display: block; font-size: 13px; font-weight: 600; color: #10b981; margin-bottom: 6px; }
-  input { width: 100%; background: #0f1712; border: 1px solid #14532d; border-radius: 8px; padding: 11px 14px; color: #e2e8f0; font-size: 14px; margin-bottom: 18px; outline: none; }
-  input:focus { border-color: #10b981; }
-  .btn { width: 100%; background: #10b981; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; }
-  .btn:hover { background: #059669; }
-  .btn:disabled { background: #14532d; cursor: not-allowed; }
-  .error { color: #f87171; font-size: 13px; margin-top: 12px; text-align: center; min-height: 18px; }
-  .back { text-align: center; margin-top: 20px; font-size: 13px; color: #6b7280; }
-  .back a { color: #a78bfa; text-decoration: none; }
-
-  /* ── Seasoning ── */
-  ::selection { background: rgba(16,185,129,.35); color: #fff; }
-  body::before {
-    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background:
-      radial-gradient(500px 380px at 80% 10%, rgba(16,185,129,.16), transparent 70%),
-      radial-gradient(420px 320px at 10% 85%, rgba(245,158,11,.1), transparent 70%);
+  :root {
+    --bg:#faf9f6; --bg2:#f3f1ea; --surface:#ffffff;
+    --text:#2b2721; --muted:#8a8378; --border:#e7e2d8;
+    --accent:#b0563d; --accent-ink:#ffffff;
+    --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
   }
-  .center { position: relative; z-index: 1; }
-  .box { box-shadow: 0 18px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(16,185,129,.12); }
-  input { transition: border-color .2s, box-shadow .2s; }
-  input:hover { border-color: rgba(16,185,129,.6); box-shadow: 0 0 12px rgba(16,185,129,.14); }
-  input:focus { box-shadow: 0 0 0 3px rgba(16,185,129,.18), 0 0 20px rgba(16,185,129,.3), 0 0 40px rgba(245,158,11,.12); }
-  .btn { background: linear-gradient(135deg, #10b981, #f59e0b); transition: transform .18s, box-shadow .18s; }
-  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(16,185,129,.42); }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 15px 28px; }
+  .logo { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 16px; }
+  .box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 380px; box-shadow: 0 4px 24px rgba(80,60,40,.07); }
+  h1 { font-family: var(--serif); font-size: 26px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 6px; }
+  .sub { color: var(--muted); font-size: 14.5px; margin-bottom: 28px; }
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 7px; }
+  input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 14px; margin-bottom: 18px; outline: none; font-family: inherit; transition: border-color .18s, box-shadow .18s; }
+  input::placeholder { color: var(--muted); }
+  input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(176,86,61,.13); }
+  .btn { width: 100%; background: var(--accent); color: var(--accent-ink); border: none; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; transition: transform .16s, filter .16s; }
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.07); }
+  .btn:disabled { background: #cbb8ad; cursor: not-allowed; transform: none; }
+  .error { color: #b4432e; font-size: 13px; margin-top: 12px; text-align: center; min-height: 18px; }
+  .back { text-align: center; margin-top: 22px; font-size: 13px; color: var(--muted); }
+  .back a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  ::selection { background: rgba(176,86,61,.18); }
 </style>
 </head>
 <body>
-<header><a class="logo" href="/"><span style="color:#ec4899">♠</span> prem-ium<span>.inc</span></a></header>
+<header><a class="logo" href="/">prem-ium<span>.inc</span></a></header>
 <div class="center">
   <div class="box">
     <h1>Welcome back</h1>
-    <p class="sub">Log in to view and edit your website</p>
+    <p class="sub">Log in to view and edit your website.</p>
     <form id="form" autocomplete="on">
       <label for="username">Username</label>
       <input id="username" name="username" type="text" autocomplete="username" placeholder="your username" required>

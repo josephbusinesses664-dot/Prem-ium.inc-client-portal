@@ -3,73 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23ec4899' d='M50 12C50 12 22 40 22 60a16 16 0 0027 12c-1 9-6 13-12 16h26c-6-3-11-7-12-16a16 16 0 0027-12C78 40 50 12 50 12z'/></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23b0563d' d='M50 12C50 12 22 40 22 60a16 16 0 0027 12c-1 9-6 13-12 16h26c-6-3-11-7-12-16a16 16 0 0027-12C78 40 50 12 50 12z'/></svg>">
 <title>Admin — prem-ium.inc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0a120e; color: #e2e8f0; font-family: system-ui, sans-serif; min-height: 100vh; }
-  header { background: #0f1712; border-bottom: 1px solid #1e3a2b; padding: 14px 24px; display: flex; align-items: center; gap: 14px; }
-  .logo { font-size: 20px; font-weight: 800; color: #ec4899; text-decoration: none; }
-  .logo span { color: #f472b6; }
-  .user-info { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #9ca3af; }
-  .logout { background: none; border: 1px solid #14532d; color: #34d399; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-  .tabs { display: flex; gap: 0; border-bottom: 1px solid #1e3a2b; background: #0f1712; padding: 0 24px; }
-  .tab { padding: 14px 20px; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; border-bottom: 2px solid transparent; }
-  .tab.active { color: #34d399; border-bottom-color: #10b981; }
+  body { background: #faf9f6; color: #2b2721; font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+  header { background: #ffffff; border-bottom: 1px solid #e7e2d8; padding: 14px 24px; display: flex; align-items: center; gap: 14px; }
+  .logo { font-size: 20px; font-weight: 800; color: #b0563d; text-decoration: none; }
+  .logo span { color: #b0563d; }
+  .user-info { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #8a8378; }
+  .logout { background: none; border: 1px solid #e7e2d8; color: #b0563d; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid #e7e2d8; background: #ffffff; padding: 0 24px; }
+  .tab { padding: 14px 20px; font-size: 14px; font-weight: 600; color: #8a8378; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.active { color: #b0563d; border-bottom-color: #b0563d; }
   main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   .panel { display: none; }
   .panel.active { display: block; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; padding: 10px 14px; color: #6b7280; font-weight: 600; border-bottom: 1px solid #1e3a2b; }
-  td { padding: 10px 14px; border-bottom: 1px solid #10251a; vertical-align: top; }
-  tr:hover td { background: #14241b; }
-  a { color: #34d399; text-decoration: none; }
+  th { text-align: left; padding: 10px 14px; color: #8a8378; font-weight: 600; border-bottom: 1px solid #e7e2d8; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f3f1ea; vertical-align: top; }
+  tr:hover td { background: #ffffff; }
+  a { color: #b0563d; text-decoration: none; }
   a:hover { text-decoration: underline; }
   .badge { padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
-  .badge-pending { background: #451a03; color: #fbbf24; }
-  .badge-in-progress { background: #1e3a5f; color: #93c5fd; }
-  .badge-done { background: #052e16; color: #86efac; }
-  .badge-admin { background: #14532d; color: #c4b5fd; }
-  .badge-client { background: #1e3a5f; color: #93c5fd; }
-  .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; background: #14241b; padding: 18px; border-radius: 10px; border: 1px solid #1e3a2b; }
-  .form-row label { font-size: 12px; color: #34d399; font-weight: 600; display: block; margin-bottom: 5px; }
-  .form-row input, .form-row select { background: #0f1712; border: 1px solid #14532d; border-radius: 7px; padding: 8px 12px; color: #e2e8f0; font-size: 13px; min-width: 130px; outline: none; }
-  .form-row input:focus, .form-row select:focus { border-color: #10b981; }
+  .badge-pending { background: #f5e6cf; color: #9a6a1a; }
+  .badge-in-progress { background: #e0e8f4; color: #3b5f93; }
+  .badge-done { background: #dfeee2; color: #3a7a4a; }
+  .badge-admin { background: #e7e2d8; color: #9a5138; }
+  .badge-client { background: #e0e8f4; color: #3b5f93; }
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; background: #ffffff; padding: 18px; border-radius: 10px; border: 1px solid #e7e2d8; }
+  .form-row label { font-size: 12px; color: #b0563d; font-weight: 600; display: block; margin-bottom: 5px; }
+  .form-row input, .form-row select { background: #ffffff; border: 1px solid #e7e2d8; border-radius: 7px; padding: 8px 12px; color: #2b2721; font-size: 13px; min-width: 130px; outline: none; }
+  .form-row input:focus, .form-row select:focus { border-color: #b0563d; }
   .btn { padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
-  .btn-primary { background: #10b981; color: #fff; }
-  .btn-primary:hover { background: #059669; }
+  .btn-primary { background: #b0563d; color: #fff; }
+  .btn-primary:hover { background: #96472f; }
   .btn-sm { padding: 4px 10px; font-size: 12px; }
-  .btn-danger { background: none; color: #f87171; border: 1px solid #7f1d1d; }
-  .btn-danger:hover { background: #7f1d1d22; }
-  .btn-info { background: none; color: #93c5fd; border: 1px solid #1d4ed8; }
-  .btn-info:hover { background: #1e3a5f; }
-  .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #34d399; }
-  .status-msg { font-size: 13px; color: #86efac; margin-top: 8px; }
-  select.status-select { background: #0f1712; border: 1px solid #14532d; border-radius: 6px; padding: 4px 8px; color: #e2e8f0; font-size: 12px; cursor: pointer; }
-  .note-input { background: #0f1712; border: 1px solid #14532d; border-radius: 6px; padding: 4px 8px; color: #e2e8f0; font-size: 12px; width: 180px; }
+  .btn-danger { background: none; color: #b4432e; border: 1px solid #e3c4bb; }
+  .btn-danger:hover { background: #f7ece8; }
+  .btn-info { background: none; color: #3b5f93; border: 1px solid #3b5f93; }
+  .btn-info:hover { background: #e0e8f4; }
+  .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #b0563d; }
+  .status-msg { font-size: 13px; color: #3a7a4a; margin-top: 8px; }
+  select.status-select { background: #ffffff; border: 1px solid #e7e2d8; border-radius: 6px; padding: 4px 8px; color: #2b2721; font-size: 12px; cursor: pointer; }
+  .note-input { background: #ffffff; border: 1px solid #e7e2d8; border-radius: 6px; padding: 4px 8px; color: #2b2721; font-size: 12px; width: 180px; }
   .req-desc { max-width: 260px; word-break: break-word; }
 
   /* ── Seasoning ── */
-  ::selection { background: rgba(16,185,129,.35); color: #fff; }
+  ::selection { background: rgba(176,86,61,.35); color: #fff; }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: #0a120e; }
-  ::-webkit-scrollbar-thumb { background: #1e3a2b; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+  ::-webkit-scrollbar-track { background: #faf9f6; }
+  ::-webkit-scrollbar-thumb { background: #e7e2d8; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #b0563d; }
   .btn { transition: transform .18s, box-shadow .18s; }
   .btn:hover { transform: translateY(-1px); }
-  .btn-primary { background: linear-gradient(135deg, #10b981, #f59e0b); }
-  .btn-primary:hover { box-shadow: 0 5px 18px rgba(16,185,129,.4); }
+  .btn-primary { background: linear-gradient(135deg, #b0563d, #b0563d); }
+  .btn-primary:hover { box-shadow: 0 5px 18px rgba(176,86,61,.4); }
   .panel.active { animation: panelIn .35s ease; }
   @keyframes panelIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   tbody tr { transition: background .15s; }
-  tbody tr:hover { background: rgba(16,185,129,.07); }
+  tbody tr:hover { background: rgba(176,86,61,.07); }
   .form-row input, .form-row select, .note-input { transition: border-color .2s, box-shadow .2s; }
-  .form-row input:focus, .form-row select:focus, .note-input:focus { box-shadow: 0 0 0 3px rgba(16,185,129,.16), 0 0 16px rgba(16,185,129,.22); }
+  .form-row input:focus, .form-row select:focus, .note-input:focus { box-shadow: 0 0 0 3px rgba(176,86,61,.16), 0 0 16px rgba(176,86,61,.22); }
+  h1,h2,h3,.page-title,.section-title,.logo{font-family:'Fraunces',Georgia,serif;}
+  .logo{font-weight:700;letter-spacing:-.02em;}
+  ::selection{background:rgba(176,86,61,.18);}
 </style>
 </head>
 <body>
 <header>
-  <a class="logo" href="/"><span style="color:#ec4899">♠</span> prem-ium<span>.inc</span></a>
+  <a class="logo" href="/">prem-ium<span>.inc</span></a>
   <div class="user-info">
     <span>Admin Panel</span>
     <button class="logout" onclick="logout()">Log out</button>
@@ -107,7 +113,7 @@
   <table>
     <thead><tr><th>Username</th><th>Password</th><th>Site Slug</th><th>Role</th><th>Actions</th></tr></thead>
     <tbody id="users-tbody">
-      <tr><td colspan="4" style="color:#6b7280">Loading…</td></tr>
+      <tr><td colspan="4" style="color:#8a8378">Loading…</td></tr>
     </tbody>
   </table>
 </div>
@@ -118,7 +124,7 @@
     All Sites
     <button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="injectAll()"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;margin-bottom:1px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Inject GA Tags — All Sites</button>
     <button class="btn btn-info" style="font-size:12px;padding:6px 14px" onclick="syncSites()"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;margin-bottom:1px"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>Sync New Sites</button>
-    <span id="inject-all-status" style="font-size:12px;color:#86efac"></span>
+    <span id="inject-all-status" style="font-size:12px;color:#3a7a4a"></span>
   </div>
   <div class="form-row">
     <div><label>Business Name</label><input id="s-biz" placeholder="CBS Plumbing" oninput="autoFillSiteFields(this.value)"></div>
@@ -137,7 +143,7 @@
   <table>
     <thead><tr><th>Business</th><th>City</th><th>Category</th><th>Render</th><th>GitHub</th><th>Actions</th></tr></thead>
     <tbody id="sites-tbody">
-      <tr><td colspan="6" style="color:#6b7280">Loading…</td></tr>
+      <tr><td colspan="6" style="color:#8a8378">Loading…</td></tr>
     </tbody>
   </table>
 </div>
@@ -170,7 +176,7 @@ async function loadRequests() {
     const r = await fetch('/api/requests', { headers: { Authorization: `Bearer ${token}` } });
     const data = await r.json();
     const el = document.getElementById('requests-table');
-    if (!data.length) { el.innerHTML = '<div style="color:#6b7280;padding:20px 0">No requests yet.</div>'; return; }
+    if (!data.length) { el.innerHTML = '<div style="color:#8a8378;padding:20px 0">No requests yet.</div>'; return; }
     el.innerHTML = `<table>
       <thead><tr><th>Business</th><th>Description</th><th>Submitted</th><th>Status</th><th>Note</th><th>Actions</th></tr></thead>
       <tbody>${data.map(req => `
@@ -191,7 +197,7 @@ async function loadRequests() {
       `).join('')}</tbody>
     </table>`;
   } catch (e) {
-    document.getElementById('requests-table').innerHTML = '<div style="color:#f87171">Error loading requests</div>';
+    document.getElementById('requests-table').innerHTML = '<div style="color:#b4432e">Error loading requests</div>';
   }
 }
 
@@ -213,12 +219,12 @@ async function loadUsers() {
   const data = await r.json();
   const tbody = document.getElementById('users-tbody');
   const entries = Object.entries(data);
-  if (!entries.length) { tbody.innerHTML = '<tr><td colspan="5" style="color:#6b7280">No users yet</td></tr>'; return; }
+  if (!entries.length) { tbody.innerHTML = '<tr><td colspan="5" style="color:#8a8378">No users yet</td></tr>'; return; }
   tbody.innerHTML = entries.map(([u, d]) => `
     <tr>
       <td>${u}</td>
-      <td>${d.password ? `<code style="background:#10251a;border:1px solid #1e3a2b;padding:2px 8px;border-radius:5px;font-size:12px">${d.password}</code>` : '<span style="color:#6b7280">hidden</span>'}</td>
-      <td>${d.siteSlug || '<span style="color:#6b7280">none</span>'}</td>
+      <td>${d.password ? `<code style="background:#f3f1ea;border:1px solid #e7e2d8;padding:2px 8px;border-radius:5px;font-size:12px">${d.password}</code>` : '<span style="color:#8a8378">hidden</span>'}</td>
+      <td>${d.siteSlug || '<span style="color:#8a8378">none</span>'}</td>
       <td><span class="badge badge-${d.role}">${d.role}</span></td>
       <td>
         <button class="btn btn-sm btn-info" onclick="editUser('${u}','${d.siteSlug||''}','${d.role}')">Edit</button>
@@ -254,7 +260,7 @@ async function createUser() {
     ['u-username','u-password','u-slug'].forEach(id => document.getElementById(id).value = '');
     loadUsers();
   } else {
-    status.style.color = '#f87171';
+    status.style.color = '#b4432e';
     status.textContent = 'Error: ' + d.error;
   }
 }
@@ -272,10 +278,10 @@ async function loadSites() {
   const data = await r.json();
   const tbody = document.getElementById('sites-tbody');
   const entries = Object.entries(data);
-  if (!entries.length) { tbody.innerHTML = '<tr><td colspan="6" style="color:#6b7280">No sites</td></tr>'; return; }
+  if (!entries.length) { tbody.innerHTML = '<tr><td colspan="6" style="color:#8a8378">No sites</td></tr>'; return; }
   tbody.innerHTML = entries.map(([slug, s]) => `
     <tr>
-      <td><strong>${s.business}</strong><br><span style="color:#6b7280;font-size:11px">${slug}</span></td>
+      <td><strong>${s.business}</strong><br><span style="color:#8a8378;font-size:11px">${slug}</span></td>
       <td>${s.city}</td>
       <td>${s.category || ''}</td>
       <td><a href="${s.renderUrl}" target="_blank">${s.renderUrl.replace('https://','')}</a></td>
@@ -312,8 +318,8 @@ async function createGithubRepo() {
   const repo = document.getElementById('s-repo').value.trim();
   const business = document.getElementById('s-biz').value.trim();
   const status = document.getElementById('create-repo-status');
-  if (!repo || !business) { status.style.color='#f87171'; status.textContent='Fill in Business Name and GitHub Repo first.'; return; }
-  status.style.color='#86efac'; status.textContent = `Creating ${repo}…`;
+  if (!repo || !business) { status.style.color='#b4432e'; status.textContent='Fill in Business Name and GitHub Repo first.'; return; }
+  status.style.color='#3a7a4a'; status.textContent = `Creating ${repo}…`;
   try {
     const r = await fetch('/api/admin/create-repo', {
       method: 'POST',
@@ -324,7 +330,7 @@ async function createGithubRepo() {
     if (!r.ok) throw new Error(d.error || 'Failed');
     status.textContent = `Repo "${repo}" created: ${d.url}`;
   } catch (err) {
-    status.style.color='#f87171'; status.textContent = 'Error: ' + err.message;
+    status.style.color='#b4432e'; status.textContent = 'Error: ' + err.message;
   }
 }
 
@@ -348,7 +354,7 @@ async function addSite() {
     ['s-slug','s-biz','s-city','s-cat','s-render','s-repo'].forEach(id => document.getElementById(id).value = '');
     loadSites();
   } else {
-    status.style.color = '#f87171';
+    status.style.color = '#b4432e';
     status.textContent = 'Error: ' + d.error;
   }
 }
@@ -368,10 +374,10 @@ async function injectGa(slug, btn) {
     const d = await r.json();
     if (!r.ok) throw new Error(d.error);
     btn.textContent = d.skipped ? 'already had it' : 'done';
-    btn.style.color = '#86efac';
+    btn.style.color = '#3a7a4a';
   } catch (err) {
     btn.textContent = 'error';
-    btn.style.color = '#f87171';
+    btn.style.color = '#b4432e';
     btn.title = err.message;
   }
 }
@@ -391,14 +397,14 @@ async function injectAll() {
     status.textContent = msg;
     loadSites();
   } catch (err) {
-    status.style.color = '#f87171';
+    status.style.color = '#b4432e';
     status.textContent = 'Error: ' + err.message;
   }
 }
 
 async function syncSites() {
   const status = document.getElementById('inject-all-status');
-  status.style.color = '#86efac';
+  status.style.color = '#3a7a4a';
   status.textContent = 'Scanning GitHub for new preview repos…';
   try {
     const r = await fetch('/api/admin/sync-sites', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
@@ -409,7 +415,7 @@ async function syncSites() {
       : 'Everything already in sync — no new sites found';
     loadSites();
   } catch (err) {
-    status.style.color = '#f87171';
+    status.style.color = '#b4432e';
     status.textContent = 'Error: ' + err.message;
   }
 }

@@ -3,73 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23ec4899' d='M50 12C50 12 22 40 22 60a16 16 0 0027 12c-1 9-6 13-12 16h26c-6-3-11-7-12-16a16 16 0 0027-12C78 40 50 12 50 12z'/></svg>">
-<title>prem-ium.inc Client Portal</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23b0563d' d='M50 12C50 12 22 40 22 60a16 16 0 0027 12c-1 9-6 13-12 16h26c-6-3-11-7-12-16a16 16 0 0027-12C78 40 50 12 50 12z'/></svg>">
+<title>prem-ium.inc — Client Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0a120e; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; }
-  ::selection { background: rgba(124,58,237,.35); color: #fff; }
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #0a120e; }
-  ::-webkit-scrollbar-thumb { background: #2d1f5e; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #10b981; }
-  body::before {
-    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background:
-      radial-gradient(600px 400px at 85% -5%, rgba(16,185,129,.14), transparent 70%),
-      radial-gradient(500px 350px at -5% 40%, rgba(245,158,11,.08), transparent 70%);
+  :root {
+    --bg:#faf9f6; --bg2:#f3f1ea; --surface:#ffffff;
+    --text:#2b2721; --muted:#8a8378; --border:#e7e2d8;
+    --accent:#b0563d; --accent-ink:#ffffff; --accent-deep:#96472f;
+    --badge-bg:#f0e9df; --badge-fg:#9a5138;
+    --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
   }
-  header, main, footer { position: relative; z-index: 1; }
-  header { background: rgba(15,10,30,.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid #1e3a2b; padding: 18px 32px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10; }
-  .logo { font-size: 22px; font-weight: 800; color: #ec4899; letter-spacing: -0.5px; }
-  .logo span { color: #f472b6; }
-  .tagline { font-size: 13px; color: #6b7280; margin-left: auto; }
-  .login-btn { background: linear-gradient(135deg, #10b981, #f59e0b); color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; transition: transform .18s, box-shadow .18s; }
-  .login-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(16,185,129,.4); }
-  main { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
-  h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
-  .subtitle { color: #9ca3af; margin-bottom: 36px; font-size: 15px; }
-  .search { width: 100%; max-width: 400px; background: #14241b; border: 1px solid #14532d; border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 14px; margin-bottom: 28px; outline: none; transition: border-color .2s, box-shadow .2s; }
-  .search:hover { border-color: rgba(16,185,129,.6); box-shadow: 0 0 12px rgba(16,185,129,.15); }
-  .search:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.18), 0 0 20px rgba(16,185,129,.3), 0 0 40px rgba(245,158,11,.12); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-  .card { background: #14241b; border: 1px solid #1e3a2b; border-radius: 12px; padding: 22px; transition: border-color .25s, transform .25s, box-shadow .25s; cursor: pointer; position: relative; overflow: hidden; opacity: 0; transform: translateY(18px); animation: cardIn .55s ease forwards; }
-  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #10b981, #f59e0b); opacity: 0; transition: opacity .25s; }
-  .card:hover { border-color: #10b981; transform: translateY(-4px); box-shadow: 0 10px 36px rgba(16,185,129,.22); }
-  .card:hover::before { opacity: 1; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+  ::selection { background: rgba(176,86,61,.18); }
+  ::-webkit-scrollbar { width: 9px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: #d8d0c2; border-radius: 5px; border: 2px solid var(--bg2); }
+  ::-webkit-scrollbar-thumb:hover { background: #c4b9a6; }
+
+  header { background: rgba(250,249,246,.8); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: 1px solid var(--border); padding: 15px 32px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 10; }
+  .logo { font-family: var(--sans); font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+  .logo span { color: var(--accent); }
+  .tagline { font-size: 13px; color: var(--muted); margin-left: 6px; padding-left: 16px; border-left: 1px solid var(--border); }
+  .nav-spacer { flex: 1; }
+  .login-btn { background: var(--accent); color: var(--accent-ink); border: none; padding: 9px 18px; border-radius: 9px; font-size: 13.5px; font-weight: 600; cursor: pointer; text-decoration: none; transition: transform .16s, filter .16s; }
+  .login-btn:hover { transform: translateY(-1px); filter: brightness(1.07); }
+
+  main { max-width: 1160px; margin: 0 auto; padding: 56px 28px 40px; }
+  .eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  h1 { font-family: var(--serif); font-size: 40px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.08; margin-bottom: 12px; }
+  .subtitle { color: var(--muted); margin-bottom: 34px; font-size: 16px; max-width: 540px; line-height: 1.55; }
+  .search { width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 15px; color: var(--text); font-size: 14px; margin-bottom: 38px; outline: none; font-family: inherit; transition: border-color .18s, box-shadow .18s; }
+  .search::placeholder { color: var(--muted); }
+  .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(176,86,61,.13); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; box-shadow: 0 1px 2px rgba(80,60,40,.05), 0 2px 8px rgba(80,60,40,.04); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; cursor: pointer; opacity: 0; transform: translateY(16px); animation: cardIn .5s ease forwards; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(80,60,40,.12); border-color: rgba(176,86,61,.4); }
   @keyframes cardIn { to { opacity: 1; transform: none; } }
-  .card-badge { font-size: 11px; font-weight: 600; background: #14532d; color: #10b981; padding: 3px 8px; border-radius: 99px; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px; }
-  .card-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
-  .card-city { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
-  .card-actions { display: flex; gap: 8px; }
-  .btn-view { flex: 1; background: #10251a; border: 1px solid #14532d; color: #10b981; padding: 8px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; display: block; }
-  .btn-view:hover { background: #163526; }
-  .btn-edit { flex: 1; background: #10b981; color: #fff; border: none; padding: 8px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; display: block; }
-  .btn-edit:hover { background: #059669; }
-  .empty { color: #6b7280; text-align: center; padding: 60px 0; }
-  .loading { color: #6b7280; text-align: center; padding: 60px 0; }
-  footer { text-align: center; padding: 32px; color: #4b5563; font-size: 12px; }
+  .card-badge { font-size: 11px; font-weight: 700; background: var(--badge-bg); color: var(--badge-fg); padding: 4px 10px; border-radius: 99px; display: inline-block; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .03em; }
+  .card-name { font-family: var(--serif); font-size: 19px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 6px; }
+  .card-city { font-size: 13.5px; color: var(--muted); margin-bottom: 20px; display: flex; align-items: center; gap: 5px; }
+  .card-actions { display: flex; gap: 9px; }
+  .btn-view { flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text); padding: 9px; border-radius: 9px; font-size: 12.5px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; display: block; transition: background .16s; }
+  .btn-view:hover { background: var(--bg2); }
+  .btn-edit { flex: 1; background: var(--accent); color: var(--accent-ink); border: none; padding: 9px; border-radius: 9px; font-size: 12.5px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; display: block; transition: filter .16s, transform .16s; }
+  .btn-edit:hover { filter: brightness(1.07); transform: translateY(-1px); }
+  .empty, .loading { color: var(--muted); text-align: center; padding: 60px 0; }
+  footer { border-top: 1px solid var(--border); text-align: center; padding: 28px; color: var(--muted); font-size: 13px; margin-top: 40px; }
 </style>
 </head>
 <body>
-<div id="splash-overlay" style="position:fixed;inset:0;background:#0a120e;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:1">
+<div id="splash-overlay" style="position:fixed;inset:0;background:#211d18;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:1">
   <div id="splash-grid" style="display:grid;grid-template-columns:repeat(21,13px);gap:3px;margin-bottom:60px"></div>
-  <div id="splash-text" style="color:#ec4899;font-size:18px;font-weight:700;letter-spacing:1px;opacity:0">prem-ium.inc</div>
+  <div id="splash-text" style="color:#e6d8c8;font-family:'Inter',sans-serif;font-size:17px;font-weight:700;letter-spacing:.14em;opacity:0">PREM-IUM.INC</div>
 </div>
 <header>
-  <div class="logo"><span style="color:#ec4899">♠</span> prem-ium<span>.inc</span></div>
-  <span class="tagline">Client Website Portal</span>
-  <a href="/login" class="login-btn">Edit My Site</a>
+  <div class="logo">prem-ium<span>.inc</span></div>
+  <span class="tagline">Client Portal</span>
+  <div class="nav-spacer"></div>
+  <a href="/login" class="login-btn">Edit my site</a>
 </header>
 <main>
-  <h1>Our Client Sites</h1>
-  <p class="subtitle">Browse all websites we've built. Log in to edit yours.</p>
+  <div class="eyebrow">Client portal</div>
+  <h1>Your websites, beautifully managed.</h1>
+  <p class="subtitle">Browse every site we've built for you, and log in to edit yours — content, design, and layout, all in one place.</p>
   <input class="search" type="text" placeholder="Search businesses, cities, categories…" id="search" autocomplete="off">
   <div class="grid" id="grid">
     <div class="loading">Loading sites…</div>
   </div>
 </main>
-<footer>Built by prem-ium.inc &mdash; care for local businesses</footer>
+<footer>Built by prem-ium.inc — crafted for local businesses.</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
@@ -102,13 +109,11 @@ function initSplash() {
 
   const grid = document.getElementById('splash-grid');
   const cells = [];
-  // Every grid slot gets a div so the CSS grid keeps real positions —
-  // only spade cells are visible and animated.
   SPADE_PATTERN.forEach((row, r) => {
     row.forEach((cell, c) => {
       const div = document.createElement('div');
       if (cell) {
-        div.style.cssText = 'width:13px;height:13px;background:#10b981;border-radius:2px;opacity:0;transform:scale(0.8)';
+        div.style.cssText = 'width:13px;height:13px;background:#c76b4f;border-radius:2px;opacity:0;transform:scale(0.8)';
         cells.push({ el: div, r, c });
       } else {
         div.style.cssText = 'width:13px;height:13px;visibility:hidden';
@@ -120,42 +125,24 @@ function initSplash() {
   const tl = gsap.timeline();
   const overlay = document.getElementById('splash-overlay');
 
-  // Build spade brick by brick, radiating out from the center of the shape
   const CR = 9.5, CC = 10;
   cells.forEach(cell => {
     const dist = Math.hypot(cell.r - CR, cell.c - CC);
     tl.to(cell.el, { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(2)' }, dist * 0.13);
   });
 
-  // Text fade in while the last bricks land
   tl.to('#splash-text', { opacity: 1, y: 0, duration: 0.6 }, '-=0.5');
-
-  // Hold the finished spade on screen
   tl.to({}, { duration: 2.2 });
 
-  // Break apart on its own — bricks drift out, tumble, and fall
   tl.to(cells.map(x => x.el), {
     opacity: 0,
-    x: (i) => {
-      const cell = cells[i];
-      const dx = cell.c - 10;
-      return dx * (10 + Math.random() * 6) + (Math.random() - 0.5) * 40;
-    },
-    y: (i) => {
-      const cell = cells[i];
-      const dy = cell.r - 9;
-      return dy * (10 + Math.random() * 6) + 160 + Math.random() * 120;
-    },
+    x: (i) => { const cell = cells[i]; const dx = cell.c - 10; return dx * (10 + Math.random() * 6) + (Math.random() - 0.5) * 40; },
+    y: (i) => { const cell = cells[i]; const dy = cell.r - 9; return dy * (10 + Math.random() * 6) + 160 + Math.random() * 120; },
     rotation: () => (Math.random() - 0.5) * 360,
-    duration: 1.5,
-    ease: 'power2.in',
-    stagger: { amount: 0.5, from: 'random' }
+    duration: 1.5, ease: 'power2.in', stagger: { amount: 0.5, from: 'random' }
   });
 
-  // Text breaks away and falls too
   tl.to('#splash-text', { opacity: 0, y: 120, rotation: 6, duration: 1.1, ease: 'power2.in' }, '-=1.6');
-
-  // Fade overlay
   tl.to(overlay, { opacity: 0, duration: 0.6, onComplete: () => overlay.remove() }, '-=0.5');
 }
 
@@ -179,10 +166,10 @@ function render(sites) {
     <div class="card" data-slug="${slug}" style="animation-delay:${Math.min(i * 45, 700)}ms">
       <span class="card-badge">${s.category || 'Business'}</span>
       <div class="card-name">${s.business}</div>
-      <div class="card-city"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px;margin-bottom:1px;opacity:.7"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>${s.city}</div>
+      <div class="card-city"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.7"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>${s.city}</div>
       <div class="card-actions">
-        <a class="btn-view" href="${s.renderUrl}" target="_blank" rel="noopener">View Live Site</a>
-        <a class="btn-edit" href="/login?next=/dashboard">Edit My Site</a>
+        <a class="btn-view" href="${s.renderUrl}" target="_blank" rel="noopener">View live site</a>
+        <a class="btn-edit" href="/login?next=/dashboard">Edit</a>
       </div>
     </div>
   `).join('');
