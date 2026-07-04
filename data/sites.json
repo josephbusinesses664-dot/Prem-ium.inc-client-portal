@@ -274,42 +274,6 @@
     "owner": "Sai Kathem & Akshita Chhabra",
     "addedAt": "2025-01-01"
   },
-  "1y0nxm": {
-    "business": "Cal Plumbing & Fire Suppression Inc.",
-    "city": "",
-    "category": "Business",
-    "renderUrl": "https://preview-1y0nxm.onrender.com",
-    "githubRepo": "preview-1y0nxm",
-    "phone": "",
-    "email": "",
-    "owner": "",
-    "addedAt": "2026-07-03",
-    "autoSynced": true
-  },
-  "50awvv": {
-    "business": "Celina's Alterations",
-    "city": "",
-    "category": "Business",
-    "renderUrl": "https://preview-50awvv.onrender.com",
-    "githubRepo": "preview-50awvv",
-    "phone": "",
-    "email": "",
-    "owner": "",
-    "addedAt": "2026-07-03",
-    "autoSynced": true
-  },
-  "6l8jbs": {
-    "business": "Bob's Shoe Repair",
-    "city": "",
-    "category": "Business",
-    "renderUrl": "https://preview-6l8jbs.onrender.com",
-    "githubRepo": "preview-6l8jbs",
-    "phone": "",
-    "email": "",
-    "owner": "",
-    "addedAt": "2026-07-03",
-    "autoSynced": true
-  },
   "lzg0s3": {
     "business": "HDT Technologies",
     "city": "",
@@ -322,52 +286,15 @@
     "addedAt": "2026-07-03",
     "autoSynced": true
   },
-  "o34fu8": {
-    "business": "Saldana's Exhaust and Muffler",
-    "city": "",
-    "category": "Business",
-    "renderUrl": "https://preview-o34fu8.onrender.com",
-    "githubRepo": "preview-o34fu8",
+  "quesnack": {
+    "business": "QueSnack",
+    "city": "Hyderabad",
+    "category": "Fast Food",
+    "renderUrl": "https://preview-quesnack.onrender.com",
+    "githubRepo": "preview-quesnack",
     "phone": "",
     "email": "",
     "owner": "",
-    "addedAt": "2026-07-03",
-    "autoSynced": true
-  },
-  "oiox1m": {
-    "business": "Castlewood Upholstery Studio",
-    "city": "",
-    "category": "Business",
-    "renderUrl": "https://preview-oiox1m.onrender.com",
-    "githubRepo": "preview-oiox1m",
-    "phone": "",
-    "email": "",
-    "owner": "",
-    "addedAt": "2026-07-03",
-    "autoSynced": true
-  },
-  "w5ygk0": {
-    "business": "Castlewood Upholstery Studio",
-    "city": "",
-    "category": "Business",
-    "renderUrl": "https://preview-w5ygk0.onrender.com",
-    "githubRepo": "preview-w5ygk0",
-    "phone": "",
-    "email": "",
-    "owner": "",
-    "addedAt": "2026-07-03",
-    "autoSynced": true
-  },
-  "yv5zh1": {
-    "business": "Celina's Alterations",
-    "city": "",
-    "category": "Business",
-    "renderUrl": "https://preview-yv5zh1.onrender.com",
-    "githubRepo": "preview-yv5zh1",
-    "phone": "",
-    "email": "",
-    "owner": "",
-    "addedAt": "2026-07-03",
-    "autoSynced": true
+    "addedAt": "2026-06-27"
   }
 }
