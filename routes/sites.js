@@ -172,13 +172,16 @@ async function proxyHandler(req, res) {
     // Inject data-oc-id on all editable elements
     injectOcIds($);
 
-    // Inject meta tags and editor overlay before </body>
-    $('head').append(`
-      <meta name="oc-slug" content="${slug}">
-      <meta name="oc-token" content="${token}">
-      <meta name="oc-business" content="${escapeHtml(site.business)}">
-    `);
-    $('body').append('<script src="/editor/overlay.js"></script>');
+    // raw=1 → clean proxied HTML (used by the customize studio live preview)
+    if (!req.query.raw) {
+      // Inject meta tags and editor overlay before </body>
+      $('head').append(`
+        <meta name="oc-slug" content="${slug}">
+        <meta name="oc-token" content="${token}">
+        <meta name="oc-business" content="${escapeHtml(site.business)}">
+      `);
+      $('body').append('<script src="/editor/overlay.js"></script>');
+    }
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');

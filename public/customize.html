@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Customize — prem-ium.inc</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background: #0a120e; color: #e2e8f0; font-family: system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+  ::selection { background: rgba(16,185,129,.35); color: #fff; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a120e; }
+  ::-webkit-scrollbar-thumb { background: #1e3a2b; border-radius: 3px; }
+
+  header { background: #0f1712; border-bottom: 1px solid #1e3a2b; padding: 12px 20px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .logo { font-size: 19px; font-weight: 800; color: #ec4899; text-decoration: none; }
+  .logo span { color: #f472b6; }
+  .back { color: #10b981; font-size: 13px; text-decoration: none; }
+  .back:hover { text-decoration: underline; }
+  .user-info { margin-left: auto; font-size: 13px; color: #9ca3af; }
+
+  .layout { display: flex; flex: 1; min-height: 0; }
+
+  /* ── Sidebar ── */
+  aside { width: 400px; flex-shrink: 0; border-right: 1px solid #1e3a2b; background: #0f1712; display: flex; flex-direction: column; min-height: 0; }
+  .side-scroll { flex: 1; overflow-y: auto; padding: 18px 18px 8px; }
+  .section { background: #14241b; border: 1px solid #1e3a2b; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .section-title { font-size: 14px; font-weight: 800; color: #10b981; margin-bottom: 3px; }
+  .section-sub { font-size: 12px; color: #9ca3af; margin-bottom: 14px; line-height: 1.45; }
+
+  .preset-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+  .preset { background: #0f1712; border: 2px solid #1e3a2b; border-radius: 10px; padding: 8px 4px 6px; text-align: center; cursor: pointer; transition: border-color .2s, transform .15s; }
+  .preset:hover { transform: translateY(-1px); border-color: rgba(16,185,129,.5); }
+  .preset.sel { border-color: #10b981; box-shadow: 0 0 12px rgba(16,185,129,.2); }
+  .preset canvas { width: 56px; height: 53px; image-rendering: pixelated; }
+  .preset .p-name { font-size: 11px; font-weight: 700; margin-top: 4px; color: #d1d5db; }
+
+  #px-grid { display: grid; grid-template-columns: repeat(21, 15px); gap: 2px; user-select: none; touch-action: none; margin: 0 auto 12px; width: max-content; }
+  #px-grid div { width: 15px; height: 15px; background: #0a120e; border-radius: 2px; cursor: crosshair; }
+  #px-grid div.on { background: var(--brick, #8b5cf6); }
+  .ctrl-label { font-size: 11px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; display: block; }
+  .swatches { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .sw { width: 24px; height: 24px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: transform .15s; }
+  .sw:hover { transform: scale(1.12); }
+  .sw.sel { border-color: #fff; }
+  input[type=color] { width: 30px; height: 26px; border: none; background: none; cursor: pointer; padding: 0; }
+  input[type=text] { background: #0a120e; border: 1px solid #14532d; border-radius: 8px; padding: 8px 11px; color: #e2e8f0; font-size: 13px; width: 100%; outline: none; margin-bottom: 12px; transition: border-color .2s; }
+  input[type=text]:focus { border-color: #10b981; }
+  .btn { padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; transition: transform .15s, box-shadow .15s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-ghost { background: #0a120e; color: #10b981; border: 1px solid #14532d; }
+  .btn-ghost:hover { background: #163526; }
+  .btn-go { background: linear-gradient(135deg, #10b981, #f59e0b); color: #fff; }
+  .btn-go:hover { box-shadow: 0 4px 14px rgba(16,185,129,.4); }
+  .mini-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .toggle { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #d1d5db; cursor: pointer; margin-bottom: 12px; }
+
+  .fx-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .fx-card { background: #0f1712; border: 2px solid #1e3a2b; border-radius: 10px; padding: 12px 10px; cursor: pointer; transition: border-color .2s, transform .15s; overflow: hidden; }
+  .fx-card:hover { transform: translateY(-1px); border-color: rgba(16,185,129,.5); }
+  .fx-card.sel { border-color: #10b981; box-shadow: 0 0 12px rgba(16,185,129,.2); }
+  .fx-sample { font-size: 15px; font-weight: 800; height: 22px; display: block; white-space: nowrap; overflow: hidden; }
+  .fx-name { font-size: 10px; color: #9ca3af; margin-top: 7px; text-transform: uppercase; letter-spacing: .4px; }
+  select { background: #0a120e; border: 1px solid #14532d; border-radius: 8px; padding: 8px 11px; color: #e2e8f0; font-size: 13px; outline: none; cursor: pointer; width: 100%; }
+
+  .apply-bar { border-top: 1px solid #1e3a2b; background: #0f1712; padding: 12px 18px; flex-shrink: 0; }
+  .apply-bar .status { font-size: 12px; color: #9ca3af; margin-bottom: 10px; min-height: 15px; }
+  .apply-bar .status.ok { color: #34d399; }
+  .apply-bar .status.err { color: #f87171; }
+  .apply-bar .btns { display: flex; gap: 10px; }
+  .apply-bar .btn { flex: 1; padding: 11px; font-size: 13px; }
+
+  /* ── Preview pane ── */
+  .preview-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .preview-bar { background: #0f1712; border-bottom: 1px solid #1e3a2b; padding: 9px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .preview-bar .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .preview-bar .site-name { font-size: 12px; color: #9ca3af; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .preview-bar .hint { font-size: 11px; color: #6b7280; }
+  iframe { flex: 1; border: none; background: #fff; width: 100%; }
+  .loading-frame { flex: 1; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 14px; }
+
+  /* effect CSS for the sample cards (mirrors production) */
+  .oc-fu { opacity: 0; transform: translateY(26px); filter: blur(6px); transition: opacity 1.1s cubic-bezier(.16,1,.3,1), transform 1.1s cubic-bezier(.16,1,.3,1), filter 1.1s ease; }
+  .oc-fu.oc-vis { opacity: 1; transform: none; filter: blur(0); }
+  .oc-blur { opacity: 0; filter: blur(14px); transform: scale(1.05); transition: opacity 1.5s, filter 1.5s, transform 1.5s; }
+  .oc-blur.oc-vis { opacity: 1; filter: blur(0); transform: none; }
+  .oc-zoom { opacity: 0; transform: scale(.35); transition: transform .95s cubic-bezier(.34,1.56,.64,1), opacity .55s; }
+  .oc-zoom.oc-vis { opacity: 1; transform: none; }
+  .oc-grad { background: linear-gradient(90deg,#8b5cf6,#ec4899,#8b5cf6); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: ocGrad 4s linear infinite; }
+  @keyframes ocGrad { to { background-position: 200% center; } }
+  .oc-shimmer { background: linear-gradient(110deg,#8b5cf6 42%,#fff 50%,#8b5cf6 58%); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: ocShimmer 2.8s linear infinite; }
+  @keyframes ocShimmer { from { background-position: 125% center; } to { background-position: -125% center; } }
+  .oc-glow { color: #8b5cf6; animation: ocGlow 2.6s ease-in-out infinite; }
+  @keyframes ocGlow { 0%,100% { text-shadow: 0 0 6px #8b5cf688, 0 0 16px #8b5cf644; } 50% { text-shadow: 0 0 8px #fff8, 0 0 22px #8b5cf6, 0 0 48px #8b5cf6, 0 0 90px #ec4899; } }
+  .oc-ltr { display: inline-block; opacity: 0; transform: translateY(.8em); transition: opacity .8s ease, transform .8s cubic-bezier(.16,1,.3,1); }
+  .oc-vis .oc-ltr { opacity: 1; transform: none; }
+  .oc-wave .oc-ltr { transition-timing-function: ease, cubic-bezier(.34,2.4,.64,1); }
+  .oc-flip { perspective: 600px; }
+  .oc-flip .oc-ltr { transform: rotateX(92deg); transform-origin: 50% 100%; transition: opacity .7s ease, transform .7s cubic-bezier(.34,1.56,.64,1); }
+  .oc-flip.oc-vis .oc-ltr { transform: none; }
+
+  /* sliders */
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .slider-row label { font-size: 12px; color: #d1d5db; width: 108px; flex-shrink: 0; }
+  .slider-row input[type=range] { flex: 1; accent-color: #10b981; cursor: pointer; }
+  .slider-row .val { font-size: 11px; color: #10b981; font-weight: 700; width: 52px; text-align: right; flex-shrink: 0; }
+  #fx-speeds { margin-bottom: 14px; }
+  #fx-speeds:empty { margin: 0; }
+
+  /* element picker */
+  .pick-btn { width: 100%; margin-bottom: 12px; }
+  .pick-btn.picking { background: linear-gradient(135deg, #ec4899, #f472b6); color: #fff; border: none; animation: pickPulse 1.2s ease-in-out infinite; }
+  @keyframes pickPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(236,72,153,.5); } 50% { box-shadow: 0 0 0 6px rgba(236,72,153,0); } }
+  .ovr-row { background: #0f1712; border: 1px solid #1e3a2b; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+  .ovr-label { font-size: 12px; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ovr-controls { display: flex; gap: 8px; align-items: center; }
+  .ovr-controls select { flex: 1; padding: 6px 8px; font-size: 12px; }
+  .ovr-controls input[type=range] { flex: 1; accent-color: #ec4899; cursor: pointer; }
+  .ovr-x { background: none; border: none; color: #f87171; font-size: 15px; cursor: pointer; padding: 2px 6px; }
+  .ovr-empty { font-size: 12px; color: #6b7280; }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; overflow-y: auto; }
+    body { overflow: auto; }
+    aside { width: 100%; border-right: none; }
+    .preview-pane { min-height: 70vh; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">prem-ium<span>.inc</span></a>
+  <a class="back" href="/dashboard">← Dashboard</a>
+  <div class="user-info" id="user-label"></div>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="side-scroll">
+      <!-- Opening animation -->
+      <div class="section">
+        <div class="section-title">Opening Animation</div>
+        <div class="section-sub">Built brick-by-brick when visitors arrive, then breaks apart on its own. Pick a preset or draw your own — it plays in the preview as you edit.</div>
+        <div class="preset-row" id="preset-row"></div>
+        <span class="ctrl-label">Draw — drag to paint · right-click erases</span>
+        <div id="px-grid" oncontextmenu="return false"></div>
+        <span class="ctrl-label">Brick color</span>
+        <div class="swatches" id="swatches"></div>
+        <span class="ctrl-label">Text under the shape</span>
+        <input type="text" id="splash-text" maxlength="60" placeholder="Your business name">
+        <label class="toggle"><input type="checkbox" id="mirror" checked> Mirror drawing (symmetry)</label>
+        <span class="ctrl-label">Timing</span>
+        <div class="slider-row"><label>Build speed</label><input type="range" id="sp-step" min="0.04" max="0.25" step="0.01" value="0.11"><span class="val" id="sp-step-v">0.11s</span></div>
+        <div class="slider-row"><label>Hold on screen</label><input type="range" id="sp-hold" min="0.5" max="6" step="0.1" value="2"><span class="val" id="sp-hold-v">2.0s</span></div>
+        <div class="slider-row"><label>Break-apart</label><input type="range" id="sp-break" min="0.6" max="3.5" step="0.1" value="1.5"><span class="val" id="sp-break-v">1.5s</span></div>
+        <div class="mini-row">
+          <button class="btn btn-ghost" onclick="clearGrid()">Clear</button>
+          <button class="btn btn-ghost" onclick="renderPreview()">↻ Replay in preview</button>
+        </div>
+      </div>
+
+      <!-- Text animations -->
+      <div class="section">
+        <div class="section-title">Text Animations</div>
+        <div class="section-sub">How text on your site animates in as visitors scroll. Click a card to see it — the preview updates live.</div>
+        <div class="fx-row" id="fx-row"></div>
+        <div id="fx-speeds"></div>
+        <span class="ctrl-label">Apply to</span>
+        <select id="fx-scope">
+          <option value="h1">Main heading only</option>
+          <option value="h1,h2" selected>Headings</option>
+          <option value="h1,h2,h3">All headings</option>
+          <option value="h1,h2,h3,p">Headings + paragraphs</option>
+        </select>
+      </div>
+
+      <!-- Per-element animations -->
+      <div class="section">
+        <div class="section-title">Per-Element Animations</div>
+        <div class="section-sub">Hover any text in the preview and <b>click it</b> to give it its own animation. Dashed pink outlines mark elements that already have one.</div>
+        <div id="ovr-list"><div class="ovr-empty">No per-element animations yet — click some text in the preview.</div></div>
+      </div>
+    </div>
+
+    <div class="apply-bar">
+      <div class="status" id="status">Preview only — nothing is live until you Apply.</div>
+      <div class="btns">
+        <button class="btn btn-ghost" onclick="removeAll()">Remove all</button>
+        <button class="btn btn-go" onclick="apply()">Apply to my site</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="preview-pane">
+    <div class="preview-bar">
+      <div class="dot" style="background:#ef4444"></div>
+      <div class="dot" style="background:#f59e0b"></div>
+      <div class="dot" style="background:#22c55e"></div>
+      <span class="site-name" id="site-name">Loading your site…</span>
+      <span class="hint">live preview</span>
+    </div>
+    <div class="loading-frame" id="frame-loading">Loading your site…</div>
+    <iframe id="frame" style="display:none" sandbox="allow-scripts allow-same-origin"></iframe>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('oc_token');
+const slug = localStorage.getItem('oc_slug');
+const username = localStorage.getItem('oc_username');
+if (!token) location.href = '/login?next=/customize';
+if (localStorage.getItem('oc_role') === 'admin' && !slug) location.href = '/admin';
+document.getElementById('user-label').textContent = username || '';
+
+/* ── Pixel patterns ── */
+const art = s => s.trim().split('\n').map(r => [...r].map(c => c === '#' ? 1 : 0));
+const PATTERNS = {
+  heart: art(`
+...#####.....#####...
+..#######...#######..
+.#########.#########.
+.###################.
+#####################
+#####################
+#####################
+.###################.
+..#################..
+...###############...
+....#############....
+.....###########.....
+......#########......
+.......#######.......
+........#####........
+.........###.........
+..........#..........`),
+  diamond: art(`
+.....###########.....
+....#############....
+...###############...
+..#################..
+.###################.
+#####################
+.###################.
+..#################..
+...###############...
+....#############....
+.....###########.....
+......#########......
+.......#######.......
+........#####........
+.........###.........
+..........#..........`),
+  spade: art(`
+..........#..........
+.........###.........
+........#####........
+.......#######.......
+......#########......
+.....###########.....
+....#############....
+...###############...
+..#################..
+.###################.
+#####################
+#####################
+#####################
+.########...########.
+..######.....######..
+...###.........###...
+.........###.........
+.........###.........
+........#####........
+......#########......`),
+  star: art(`
+..........#..........
+.........###.........
+.........###.........
+........#####........
+#####################
+.###################.
+...###############...
+.....###########.....
+......#########......
+.....###########.....
+....######.######....
+...#####.....#####...
+..#####.......#####..
+.####...........####.
+###...............###`),
+  bolt: art(`
+........########.....
+.......########......
+.......#######.......
+......#######........
+.....########........
+.....############....
+......#########......
+......#######........
+.....#######.........
+.....######..........
+....######...........
+....#####............
+...#####.............
+...####..............
+..####...............
+..###................
+.###.................
+.##..................`),
+};
+
+const COLS = 21, ROWS = 20;
+let grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+let brickColor = '#8b5cf6';
+let selFx = 'none';
+let baseHTML = null;
+let siteInfo = null;
+
+/* ── Presets ── */
+const presetDefs = [['none', 'None'], ['heart', 'Heart'], ['diamond', 'Diamond'], ['spade', 'Spade'], ['star', 'Star'], ['bolt', 'Bolt']];
+const presetRow = document.getElementById('preset-row');
+presetDefs.forEach(([key, name]) => {
+  const card = document.createElement('div');
+  card.className = 'preset' + (key === 'none' ? ' sel' : '');
+  card.dataset.key = key;
+  const cv = document.createElement('canvas');
+  cv.width = 21; cv.height = 20;
+  card.appendChild(cv);
+  const label = document.createElement('div');
+  label.className = 'p-name'; label.textContent = name;
+  card.appendChild(label);
+  card.onclick = () => selectPreset(key);
+  presetRow.appendChild(card);
+  if (key !== 'none') drawMini(cv, PATTERNS[key]);
+});
+function drawMini(cv, pattern, color) {
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, 21, 20);
+  ctx.fillStyle = color || brickColor;
+  pattern.forEach((row, r) => row.forEach((v, c) => { if (v) ctx.fillRect(c, r, 1, 1); }));
+}
+function selectPreset(key) {
+  document.querySelectorAll('.preset').forEach(p => p.classList.toggle('sel', p.dataset.key === key));
+  grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  if (key !== 'none') {
+    const p = PATTERNS[key];
+    const off = Math.floor((ROWS - p.length) / 2);
+    p.forEach((row, r) => row.forEach((v, c) => { if (v) grid[r + off][c] = 1; }));
+  }
+  renderGrid();
+  renderPreview();
+}
+
+/* ── Grid editor ── */
+const px = document.getElementById('px-grid');
+const cellEls = [];
+for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+  const d = document.createElement('div');
+  d.dataset.r = r; d.dataset.c = c;
+  px.appendChild(d); cellEls.push(d);
+}
+let painting = false, paintVal = 1, painted = false;
+px.addEventListener('mousedown', e => {
+  if (!e.target.dataset.r) return;
+  painting = true; painted = false;
+  paintVal = e.button === 2 ? 0 : (grid[e.target.dataset.r][e.target.dataset.c] ? 0 : 1);
+  paint(e.target);
+});
+px.addEventListener('mouseover', e => { if (painting && e.target.dataset.r) paint(e.target); });
+window.addEventListener('mouseup', () => {
+  if (painting && painted) renderPreview();
+  painting = false;
+});
+function paint(cell) {
+  const r = +cell.dataset.r, c = +cell.dataset.c;
+  grid[r][c] = paintVal;
+  if (document.getElementById('mirror').checked) grid[r][COLS - 1 - c] = paintVal;
+  painted = true;
+  document.querySelectorAll('.preset').forEach(p => p.classList.remove('sel'));
+  renderGrid();
+}
+function renderGrid() {
+  px.style.setProperty('--brick', brickColor);
+  cellEls.forEach(d => d.classList.toggle('on', !!grid[d.dataset.r][d.dataset.c]));
+}
+function clearGrid() {
+  grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  document.querySelectorAll('.preset').forEach(p => p.classList.toggle('sel', p.dataset.key === 'none'));
+  renderGrid();
+  renderPreview();
+}
+
+/* ── Colors ── */
+const swatchColors = ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#eab308', '#f8fafc'];
+const swEl = document.getElementById('swatches');
+swatchColors.forEach((col, i) => {
+  const s = document.createElement('div');
+  s.className = 'sw' + (i === 0 ? ' sel' : '');
+  s.style.background = col;
+  s.onclick = () => setColor(col, s);
+  swEl.appendChild(s);
+});
+const customCol = document.createElement('input');
+customCol.type = 'color'; customCol.value = '#8b5cf6';
+customCol.oninput = () => setColor(customCol.value, null);
+swEl.appendChild(customCol);
+function setColor(col, el) {
+  brickColor = col;
+  document.querySelectorAll('.sw').forEach(s => s.classList.remove('sel'));
+  if (el) el.classList.add('sel');
+  renderGrid();
+  document.querySelectorAll('.preset canvas').forEach((cv, i) => {
+    const key = presetDefs[i][0];
+    if (key !== 'none') drawMini(cv, PATTERNS[key], col);
+  });
+  renderPreview();
+}
+document.getElementById('splash-text').addEventListener('input', debounce(renderPreview, 700));
+
+/* ── Text FX cards ── */
+const FX = [
+  ['none', 'None'],
+  ['fadeup', 'Fade + Rise'],
+  ['blurin', 'Blur In'],
+  ['zoom', 'Pop In'],
+  ['letters', 'Letter Cascade'],
+  ['wave', 'Bounce Wave'],
+  ['flip', '3D Flip'],
+  ['typewriter', 'Typewriter'],
+  ['scramble', 'Scramble'],
+  ['gradient', 'Gradient Sweep'],
+  ['shimmer', 'Shine Sweep'],
+  ['glow', 'Neon Glow'],
+];
+const fxRow = document.getElementById('fx-row');
+FX.forEach(([key, name]) => {
+  const card = document.createElement('div');
+  card.className = 'fx-card' + (key === 'none' ? ' sel' : '');
+  card.dataset.key = key;
+  const sample = document.createElement('span');
+  sample.className = 'fx-sample';
+  sample.textContent = 'Your Heading';
+  card.appendChild(sample);
+  const label = document.createElement('div');
+  label.className = 'fx-name'; label.textContent = name;
+  card.appendChild(label);
+  card.onclick = () => {
+    selFx = key;
+    document.querySelectorAll('.fx-card').forEach(c => c.classList.toggle('sel', c.dataset.key === key));
+    resetSamples();               // stop looping demos on deselected cards
+    demoFx(card.querySelector('.fx-sample'), key);
+    renderSpeedPanel();
+    renderPreview();
+  };
+  fxRow.appendChild(card);
+});
+function resetSamples() {
+  document.querySelectorAll('.fx-card .fx-sample').forEach(s => {
+    const fresh = document.createElement('span');
+    fresh.className = 'fx-sample';
+    fresh.textContent = 'Your Heading';
+    s.replaceWith(fresh);
+  });
+}
+function demoFx(el, key) {
+  const parent = el.parentNode;
+  const fresh = document.createElement('span');
+  fresh.className = 'fx-sample';
+  fresh.textContent = 'Your Heading';
+  parent.replaceChild(fresh, el);
+  const arm = cls => { fresh.classList.add(cls); requestAnimationFrame(() => requestAnimationFrame(() => fresh.classList.add('oc-vis'))); };
+  if (key === 'fadeup') arm('oc-fu');
+  else if (key === 'blurin') arm('oc-blur');
+  else if (key === 'zoom') arm('oc-zoom');
+  else if (key === 'gradient') fresh.classList.add('oc-grad');
+  else if (key === 'shimmer') fresh.classList.add('oc-shimmer');
+  else if (key === 'glow') fresh.classList.add('oc-glow');
+  else if (key === 'letters' || key === 'wave' || key === 'flip') {
+    const txt = fresh.textContent; fresh.textContent = '';
+    if (key === 'wave') fresh.classList.add('oc-wave');
+    if (key === 'flip') fresh.classList.add('oc-flip');
+    [...txt].forEach((ch, i) => {
+      const s = document.createElement('span');
+      s.className = 'oc-ltr';
+      if (ch === ' ') s.innerHTML = '&nbsp;'; else s.textContent = ch;
+      s.style.transitionDelay = (i * 0.055) + 's';
+      fresh.appendChild(s);
+    });
+    requestAnimationFrame(() => requestAnimationFrame(() => fresh.classList.add('oc-vis')));
+  } else if (key === 'typewriter') {
+    const full = 'Your Heading'; fresh.textContent = ''; let i = 0;
+    (function tick() { if (i <= full.length) { fresh.textContent = full.slice(0, i); i++; setTimeout(tick, 48); } })();
+  } else if (key === 'scramble') {
+    const target = 'Your Heading', CH = 'abcdefghjkmnpqrstuvwxyz23456789';
+    let f = 0, total = 40;
+    (function tick() {
+      let out = '';
+      for (let i = 0; i < target.length; i++) out += target[i] === ' ' ? ' ' : (i < (f / total) * target.length ? target[i] : CH[Math.floor(Math.random() * CH.length)]);
+      fresh.textContent = out; f++;
+      if (f <= total) setTimeout(tick, 45); else fresh.textContent = target;
+    })();
+  }
+}
+document.getElementById('fx-scope').addEventListener('change', renderPreview);
+
+/* ── Speed controls ── */
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+const debouncedPreview = debounce(renderPreview, 350);
+
+// [key, label, min, max, step, default, unit]
+const SPEED_SPEC = {
+  fadeup:     [['dur', 'Duration', 0.3, 3, 0.05, 1.1, 's']],
+  blurin:     [['dur', 'Duration', 0.3, 3, 0.05, 1.5, 's']],
+  zoom:       [['dur', 'Duration', 0.3, 3, 0.05, 0.95, 's']],
+  letters:    [['dur', 'Duration', 0.3, 2.5, 0.05, 0.8, 's'], ['stag', 'Letter delay', 0.02, 0.15, 0.005, 0.055, 's']],
+  wave:       [['dur', 'Duration', 0.3, 2.5, 0.05, 0.8, 's'], ['stag', 'Letter delay', 0.02, 0.15, 0.005, 0.055, 's']],
+  flip:       [['dur', 'Duration', 0.3, 2.5, 0.05, 0.7, 's'], ['stag', 'Letter delay', 0.02, 0.15, 0.005, 0.05, 's']],
+  typewriter: [['typeMs', 'Per letter', 20, 150, 2, 48, 'ms']],
+  scramble:   [['scramMs', 'Total length', 800, 6000, 50, 2250, 'ms']],
+  gradient:   [['cycle', 'Cycle time', 1, 8, 0.1, 4, 's']],
+  shimmer:    [['cycle', 'Cycle time', 1, 8, 0.1, 2.8, 's']],
+  glow:       [['cycle', 'Cycle time', 1, 8, 0.1, 2.6, 's']],
+};
+const fxSpeeds = {};   // per-effect saved slider values
+
+function renderSpeedPanel() {
+  const box = document.getElementById('fx-speeds');
+  box.innerHTML = '';
+  const spec = SPEED_SPEC[selFx];
+  if (!spec) return;
+  const saved = fxSpeeds[selFx] || (fxSpeeds[selFx] = {});
+  const title = document.createElement('span');
+  title.className = 'ctrl-label';
+  title.textContent = 'Animation speed';
+  box.appendChild(title);
+  spec.forEach(([key, label, min, max, step, dflt, unit]) => {
+    if (saved[key] == null) saved[key] = dflt;
+    const row = document.createElement('div');
+    row.className = 'slider-row';
+    const lab = document.createElement('label'); lab.textContent = label;
+    const rng = document.createElement('input');
+    rng.type = 'range'; rng.min = min; rng.max = max; rng.step = step; rng.value = saved[key];
+    const val = document.createElement('span'); val.className = 'val';
+    const fmt = v => unit === 'ms' ? Math.round(v) + 'ms' : (+v).toFixed(2).replace(/0$/, '') + 's';
+    val.textContent = fmt(saved[key]);
+    rng.oninput = () => { saved[key] = +rng.value; val.textContent = fmt(rng.value); debouncedPreview(); };
+    row.append(lab, rng, val);
+    box.appendChild(row);
+  });
+}
+
+// splash timing sliders
+[['sp-step', 'sp-step-v', v => (+v).toFixed(2) + 's'], ['sp-hold', 'sp-hold-v', v => (+v).toFixed(1) + 's'], ['sp-break', 'sp-break-v', v => (+v).toFixed(1) + 's']].forEach(([id, vid, fmt]) => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => { document.getElementById(vid).textContent = fmt(el.value); debouncedPreview(); });
+});
+
+/* ── Per-element overrides ── */
+let overrides = [];   // {sel, label, effect, mult}
+const DEFS = { fadeup: { dur: 1.1 }, blurin: { dur: 1.5 }, zoom: { dur: .95 }, letters: { dur: .8, stag: .055 }, wave: { dur: .8, stag: .055 }, flip: { dur: .7, stag: .05 }, typewriter: { typeMs: 48 }, scramble: { scramMs: 2250 }, gradient: { cycle: 4 }, shimmer: { cycle: 2.8 }, glow: { cycle: 2.6 } };
+function speedFromMult(eff, m) {
+  const d = DEFS[eff] || {}; const o = {};
+  for (const k in d) o[k] = +(d[k] / (m || 1)).toFixed(3);
+  return o;
+}
+function renderOvrList() {
+  const box = document.getElementById('ovr-list');
+  box.innerHTML = '';
+  if (!overrides.length) { box.innerHTML = '<div class="ovr-empty">No per-element animations yet.</div>'; return; }
+  overrides.forEach((o, idx) => {
+    const row = document.createElement('div');
+    row.className = 'ovr-row';
+    const lab = document.createElement('div');
+    lab.className = 'ovr-label';
+    lab.textContent = '“' + (o.label || 'element') + '”';
+    row.appendChild(lab);
+    const ctr = document.createElement('div');
+    ctr.className = 'ovr-controls';
+    const sel = document.createElement('select');
+    FX.filter(f => f[0] !== 'none').forEach(([k, n]) => {
+      const op = document.createElement('option');
+      op.value = k; op.textContent = n;
+      if (k === o.effect) op.selected = true;
+      sel.appendChild(op);
+    });
+    sel.onchange = () => { o.effect = sel.value; renderPreview(); };
+    const rng = document.createElement('input');
+    rng.type = 'range'; rng.min = 0.3; rng.max = 3; rng.step = 0.1; rng.value = o.mult || 1;
+    rng.title = 'Speed';
+    const val = document.createElement('span'); val.className = 'val';
+    val.textContent = '×' + (+rng.value).toFixed(1);
+    rng.oninput = () => { o.mult = +rng.value; val.textContent = '×' + (+rng.value).toFixed(1); debouncedPreview(); };
+    const x = document.createElement('button');
+    x.className = 'ovr-x'; x.textContent = '✕'; x.title = 'Remove';
+    x.onclick = () => { overrides.splice(idx, 1); renderOvrList(); renderPreview(); };
+    ctr.append(sel, rng, val, x);
+    row.appendChild(ctr);
+    box.appendChild(row);
+  });
+}
+
+/* ── Element picker — always on: hover highlights, click assigns ── */
+const frameEl = document.getElementById('frame');
+function pickTarget(el) {
+  if (!el || !el.closest) return null;
+  const t = el.closest('h1,h2,h3,h4,h5,h6,p,li,a,button,span,blockquote');
+  if (!t || t.closest('.oc-splash') || !(t.textContent || '').trim()) return null;
+  return t;
+}
+function cssPath(el, doc) {
+  const segs = [];
+  let n = el;
+  while (n && n.tagName && n !== doc.body) {
+    let i = 1, sib = n;
+    while ((sib = sib.previousElementSibling)) if (sib.tagName === n.tagName) i++;
+    segs.unshift(n.tagName.toLowerCase() + ':nth-of-type(' + i + ')');
+    n = n.parentElement;
+  }
+  return 'body > ' + segs.join(' > ');
+}
+function armPicker() {
+  const doc = frameEl.contentDocument;
+  if (!doc || !doc.body || doc.__ocPick) return;
+  const over = e => { const t = pickTarget(e.target); if (t) { t.__ocOld = t.style.outline; t.style.outline = '3px solid #ec4899'; t.style.outlineOffset = '2px'; t.style.cursor = 'pointer'; } };
+  const out = e => { const t = pickTarget(e.target); if (t) t.style.outline = t.__ocOld || ''; };
+  const click = e => {
+    const t = pickTarget(e.target);
+    if (!t) return;
+    e.preventDefault(); e.stopPropagation();
+    const sel = cssPath(t, doc);
+    const existing = overrides.findIndex(o => o.sel === sel);
+    if (existing >= 0) { flashRow(existing); return; }
+    overrides.push({ sel, label: (t.textContent || '').trim().slice(0, 36), effect: 'fadeup', mult: 1 });
+    renderOvrList();
+    flashRow(overrides.length - 1);
+    renderPreview();
+  };
+  doc.__ocPick = { over, out, click };
+  doc.addEventListener('mouseover', over, true);
+  doc.addEventListener('mouseout', out, true);
+  doc.addEventListener('click', click, true);
+}
+function markOverridden() {
+  const doc = frameEl.contentDocument;
+  if (!doc) return;
+  overrides.forEach(o => {
+    try {
+      const el = doc.querySelector(o.sel);
+      if (el) { el.style.outline = '2px dashed rgba(236,72,153,.6)'; el.style.outlineOffset = '3px'; el.__ocOld = el.style.outline; }
+    } catch (e) { /* bad selector */ }
+  });
+}
+function flashRow(idx) {
+  const row = document.getElementById('ovr-list').children[idx];
+  if (!row || !row.classList) return;
+  row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  row.style.borderColor = '#ec4899';
+  setTimeout(() => { row.style.borderColor = ''; }, 900);
+}
+frameEl.addEventListener('load', () => { armPicker(); markOverridden(); });
+
+/* ── Live preview ── */
+
+function currentCfg(preview) {
+  const rows = grid.filter(r => r.includes(1));
+  const pattern = rows.length ? rows : null;
+  return {
+    preview: !!preview,
+    splash: pattern ? {
+      enabled: true, pattern, color: brickColor, textColor: brickColor,
+      text: document.getElementById('splash-text').value || '',
+      step: +document.getElementById('sp-step').value,
+      hold: Math.round(+document.getElementById('sp-hold').value * 1000),
+      breakDur: +document.getElementById('sp-break').value,
+      bg: '#0a0a0f',
+    } : { enabled: false },
+    fx: selFx !== 'none' ? { effect: selFx, scope: document.getElementById('fx-scope').value, c1: brickColor, c2: '#ec4899', ...(fxSpeeds[selFx] || {}) } : null,
+    overrides: overrides.map(o => ({ sel: o.sel, label: o.label, effect: o.effect, mult: o.mult, ...speedFromMult(o.effect, o.mult) })),
+  };
+}
+
+let renderSeq = 0;
+async function renderPreview() {
+  if (!baseHTML) return;
+  const seq = ++renderSeq;
+  try {
+    const r = await fetch(`/api/customize/${slug}?dry=1`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(currentCfg(true)),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'preview failed');
+    if (seq !== renderSeq) return; // stale
+    const doc = baseHTML.replace(/<\/body>/i, d.snippet + '\n</body>');
+    document.getElementById('frame').srcdoc = doc;
+  } catch (e) {
+    setStatus('Preview error: ' + e.message, 'err');
+  }
+}
+
+async function loadSite() {
+  try {
+    const rs = await fetch(`/api/sites/${slug}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (rs.status === 401) { localStorage.clear(); location.href = '/login?next=/customize'; return; }
+    siteInfo = await rs.json();
+    document.getElementById('site-name').textContent = `${siteInfo.business} — ${siteInfo.renderUrl}`;
+    document.getElementById('splash-text').placeholder = siteInfo.business;
+
+    const rh = await fetch(`/preview/${slug}?token=${encodeURIComponent(token)}&raw=1`);
+    if (!rh.ok) throw new Error('could not load site HTML');
+    let html = await rh.text();
+    // strip any applied customization so the preview starts from the clean site
+    html = html.replace(/\n?<!-- PREMIUM-CUSTOM:START -->[\s\S]*?<!-- PREMIUM-CUSTOM:END -->/, '');
+    baseHTML = html;
+    document.getElementById('frame-loading').style.display = 'none';
+    document.getElementById('frame').style.display = '';
+    await restoreConfig();
+    renderPreview();
+  } catch (e) {
+    document.getElementById('frame-loading').textContent = 'Could not load your site preview — ' + e.message;
+  }
+}
+
+async function restoreConfig() {
+  try {
+    const r = await fetch(`/api/customize/${slug}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!r.ok) return;
+    const cfg = await r.json();
+    if (cfg.splash?.enabled && cfg.splash.pattern) {
+      const p = cfg.splash.pattern;
+      const off = Math.max(0, Math.floor((ROWS - p.length) / 2));
+      grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+      p.forEach((row, r2) => row.forEach((v, c) => { if (v && r2 + off < ROWS && c < COLS) grid[r2 + off][c] = 1; }));
+      brickColor = cfg.splash.color || brickColor;
+      document.getElementById('splash-text').value = cfg.splash.text || '';
+      document.querySelectorAll('.preset').forEach(p2 => p2.classList.remove('sel'));
+      renderGrid();
+    }
+    if (cfg.splash?.enabled) {
+      if (cfg.splash.step) { document.getElementById('sp-step').value = cfg.splash.step; document.getElementById('sp-step-v').textContent = (+cfg.splash.step).toFixed(2) + 's'; }
+      if (cfg.splash.hold) { document.getElementById('sp-hold').value = cfg.splash.hold / 1000; document.getElementById('sp-hold-v').textContent = (cfg.splash.hold / 1000).toFixed(1) + 's'; }
+      if (cfg.splash.breakDur) { document.getElementById('sp-break').value = cfg.splash.breakDur; document.getElementById('sp-break-v').textContent = (+cfg.splash.breakDur).toFixed(1) + 's'; }
+    }
+    if (cfg.fx?.effect) {
+      selFx = cfg.fx.effect;
+      document.querySelectorAll('.fx-card').forEach(c => c.classList.toggle('sel', c.dataset.key === selFx));
+      document.getElementById('fx-scope').value = cfg.fx.scope || 'h1,h2';
+      const saved = {};
+      ['dur', 'stag', 'typeMs', 'scramMs', 'cycle'].forEach(k => { if (cfg.fx[k] != null) saved[k] = cfg.fx[k]; });
+      if (Object.keys(saved).length) fxSpeeds[selFx] = saved;
+      renderSpeedPanel();
+    }
+    if (Array.isArray(cfg.overrides) && cfg.overrides.length) {
+      overrides = cfg.overrides.map(o => ({ sel: o.sel, label: o.label || 'element', effect: o.effect, mult: o.mult || 1 }));
+      renderOvrList();
+    }
+  } catch (e) { /* fresh start */ }
+}
+
+/* ── Apply / Remove ── */
+function setStatus(msg, cls) {
+  const s = document.getElementById('status');
+  s.textContent = msg;
+  s.className = 'status ' + (cls || '');
+}
+async function apply() {
+  const cfg = currentCfg(false);
+  if (!cfg.splash.enabled && !cfg.fx) { setStatus('Nothing selected — draw a splash or pick a text animation.', 'err'); return; }
+  setStatus('Applying to your live site…');
+  try {
+    const r = await fetch(`/api/customize/${slug}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(cfg),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    setStatus(d.dryRun ? 'Test mode — snippet generated, nothing pushed.' : 'Applied! Your live site now has the new animations.', 'ok');
+  } catch (e) { setStatus('Error: ' + e.message, 'err'); }
+}
+async function removeAll() {
+  setStatus('Removing…');
+  try {
+    const r = await fetch(`/api/customize/${slug}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    clearGrid();
+    selFx = 'none';
+    overrides = [];
+    renderOvrList();
+    renderSpeedPanel();
+    resetSamples();
+    document.querySelectorAll('.fx-card').forEach(c => c.classList.toggle('sel', c.dataset.key === 'none'));
+    setStatus(d.dryRun ? 'Test mode — nothing pushed.' : 'All customizations removed from your live site.', 'ok');
+  } catch (e) { setStatus('Error: ' + e.message, 'err'); }
+}
+
+renderGrid();
+loadSite();
+</script>
+</body>
+</html>
