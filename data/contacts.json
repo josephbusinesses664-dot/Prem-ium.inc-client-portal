@@ -31,5 +31,16 @@
     "siteSlug": null,
     "status": "new",
     "createdAt": "2026-07-05T02:38:24.963Z"
+  },
+  {
+    "id": "4f732be8-cc21-4929-a10c-6d3e5df47907",
+    "type": "change-request",
+    "source": "portal",
+    "name": "TEST — QueSnack",
+    "email": "q@example.com",
+    "message": "Please change our hours to 11am-11pm. (automated test)",
+    "siteSlug": "quesnack",
+    "status": "new",
+    "createdAt": "2026-07-05T02:38:26.961Z"
   }
 ]
