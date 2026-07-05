@@ -310,5 +310,17 @@
     "owner": "",
     "addedAt": "2026-07-04",
     "autoSynced": true
+  },
+  "mani-pedi-spa": {
+    "business": "Mani-Pedi Spa",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://preview-mani-pedi-spa.onrender.com",
+    "githubRepo": "preview-mani-pedi-spa",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-05",
+    "autoSynced": true
   }
 }
