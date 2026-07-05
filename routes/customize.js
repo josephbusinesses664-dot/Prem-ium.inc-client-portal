@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { requireAuth } = require('../middleware/auth');
 const { readData, writeData, getSiteHTML, putSiteHTML } = require('../lib/github-data');
+const drafts = require('../lib/drafts');
 
 const START = '<!-- PREMIUM-CUSTOM:START -->';
 const END = '<!-- PREMIUM-CUSTOM:END -->';
@@ -229,7 +230,9 @@ router.get('/:slug', requireAuth, async (req, res) => {
   try {
     if (!canAccess(req.user, req.params.slug)) return res.status(403).json({ error: 'Not your site' });
     const all = (await readData('customizations')) || {};
-    res.json(all[req.params.slug] || {});
+    const rec = all[req.params.slug] || {};
+    // Config lives under .animations now; fall back to legacy flat shape.
+    res.json(rec.animations || (rec.theme ? {} : rec));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -245,8 +248,8 @@ router.post('/:slug', requireAuth, async (req, res) => {
     const bad = validateCfg(cfg);
     if (bad) return res.status(400).json({ error: bad });
 
-    const dry = req.query.dry === '1' || DRY_RUN;
-    if (dry) {
+    // ?dry=1 → just return the snippet for the live canvas preview (never persisted)
+    if (req.query.dry === '1') {
       return res.json({ ok: true, dryRun: true, snippet: buildSnippet(cfg) });
     }
 
@@ -254,10 +257,11 @@ router.post('/:slug', requireAuth, async (req, res) => {
     const site = sites?.[slug];
     if (!site) return res.status(404).json({ error: 'Site not found' });
 
-    delete cfg.preview; // never persist preview mode to a live site
+    delete cfg.preview; // never persist preview mode
     const snippet = buildSnippet(cfg);
 
-    const { html, sha } = await getSiteHTML(site.githubRepo);
+    // Write into the working draft (published together with other edits)
+    const html = await drafts.getWorking(slug, site);
     if (!html) return res.status(500).json({ error: 'Could not read site HTML' });
 
     let patched;
@@ -267,13 +271,13 @@ router.post('/:slug', requireAuth, async (req, res) => {
       patched = html.replace(/<\/body>/i, `${snippet}\n</body>`);
       if (patched === html) patched = html + '\n' + snippet;
     }
-    await putSiteHTML(site.githubRepo, patched, sha, `Customize: update animations for ${site.business}`);
+    await drafts.saveWorking(slug, patched, html);
 
     const all = (await readData('customizations')) || {};
-    all[slug] = cfg;
+    all[slug] = { ...(all[slug] || {}), animations: cfg };
     await writeData('customizations', all, `Customization config for ${slug}`);
 
-    res.json({ ok: true });
+    res.json({ ok: true, draft: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -285,23 +289,21 @@ router.delete('/:slug', requireAuth, async (req, res) => {
     const slug = req.params.slug;
     if (!canAccess(req.user, slug)) return res.status(403).json({ error: 'Not your site' });
 
-    if (DRY_RUN) return res.json({ ok: true, dryRun: true });
-
     const sites = await readData('sites');
     const site = sites?.[slug];
     if (!site) return res.status(404).json({ error: 'Site not found' });
 
-    const { html, sha } = await getSiteHTML(site.githubRepo);
+    // Strip the animation snippet from the working draft
+    const html = await drafts.getWorking(slug, site);
     if (html && html.includes(START)) {
       const patched = html.replace(new RegExp(`\\n?${START}[\\s\\S]*?${END}`), '');
-      await putSiteHTML(site.githubRepo, patched, sha, `Customize: remove animations for ${site.business}`);
+      await drafts.saveWorking(slug, patched, html);
     }
 
     const all = (await readData('customizations')) || {};
-    delete all[slug];
-    await writeData('customizations', all, `Remove customization config for ${slug}`);
+    if (all[slug]) { delete all[slug].animations; await writeData('customizations', all, `Remove animations for ${slug}`); }
 
-    res.json({ ok: true });
+    res.json({ ok: true, draft: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -726,7 +726,7 @@ async function loadSite() {
     document.getElementById('site-name').textContent = `${siteInfo.business} — ${siteInfo.renderUrl}`;
     document.getElementById('splash-text').placeholder = siteInfo.business;
 
-    const rh = await fetch(`/preview/${slug}?token=${encodeURIComponent(token)}&raw=1`);
+    const rh = await fetch(`/preview/${slug}?token=${encodeURIComponent(token)}&raw=1&draft=1`);
     if (!rh.ok) throw new Error('could not load site HTML');
     let html = await rh.text();
     // strip any applied customization so the preview starts from the clean site

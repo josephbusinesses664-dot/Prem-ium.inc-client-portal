@@ -3,6 +3,7 @@ const cheerio = require('cheerio');
 const fetch = require('node-fetch');
 const { requireAuth, requireSiteAccess } = require('../middleware/auth');
 const { readData, writeData, getSiteHTML, putSiteHTML, putSiteImage } = require('../lib/github-data');
+const drafts = require('../lib/drafts');
 const discord = require('../lib/discord');
 
 const GH_ORG = process.env.GITHUB_ORG || 'josephbusinesses664-dot';
@@ -12,15 +13,9 @@ router.get('/', async (req, res) => {
   try {
     const sites = await readData('sites');
     if (!sites) return res.json({});
-    // Strip internal fields for public view
     const pub = {};
     for (const [slug, s] of Object.entries(sites)) {
-      pub[slug] = {
-        business: s.business,
-        city: s.city,
-        category: s.category,
-        renderUrl: s.renderUrl,
-      };
+      pub[slug] = { business: s.business, city: s.city, category: s.category, renderUrl: s.renderUrl };
     }
     res.json(pub);
   } catch (err) {
@@ -28,13 +23,12 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/sites/:slug — single site detail (auth required for sensitive fields)
+// GET /api/sites/:slug — single site detail (auth required)
 router.get('/:slug', requireAuth, async (req, res) => {
   try {
     const sites = await readData('sites');
     const site = sites?.[req.params.slug];
     if (!site) return res.status(404).json({ error: 'Site not found' });
-    // Non-admin only sees their own site
     if (req.user.role !== 'admin' && req.user.siteSlug !== req.params.slug) {
       return res.status(403).json({ error: 'Not your site' });
     }
@@ -44,242 +38,218 @@ router.get('/:slug', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/sites/:slug/edit — save a text/image edit
-router.post('/:slug/edit', requireSiteAccess, async (req, res) => {
-  const { slug } = req.params;
-  const { ocId, newValue, isImage, isMap } = req.body;
-  if (!ocId || newValue === undefined) return res.status(400).json({ error: 'Missing ocId or newValue' });
-
+// ── Draft mutation helper ───────────────────────────────────────────────────────
+// Every studio edit runs through here: load the working draft, mutate it with
+// cheerio, and save it back to the draft (NOT the live site). Live only changes
+// on Publish. mutate($, site) may be async, and may return { error, status } or
+// extra fields to merge into the JSON response.
+async function opDraft(req, res, mutate) {
   try {
+    const { slug } = req.params;
     const sites = await readData('sites');
     const site = sites?.[slug];
     if (!site) return res.status(404).json({ error: 'Site not found' });
-
-    // Fetch and patch HTML from GitHub
-    const { html, sha } = await getSiteHTML(site.githubRepo);
-    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
-
-    const $ = cheerio.load(html, { decodeEntities: false });
-    injectOcIds($); // re-derive same IDs as proxy
-
-    const el = $(`[data-oc-id="${ocId}"]`);
-    if (!el.length) return res.status(404).json({ error: 'Element not found' });
-
-    const tag = el.prop('tagName').toLowerCase();
-    let oldValue;
-
-    if (isMap || (tag === 'iframe' && /google\.com\/maps|maps\.google/.test(el.attr('src') || ''))) {
-      oldValue = el.attr('src') || '';
-      const q = encodeURIComponent(String(newValue).trim()).replace(/%20/g, '+');
-      el.attr('src', `https://www.google.com/maps?q=${q}&output=embed`);
-    } else if (isImage || tag === 'img') {
-      oldValue = el.attr('src') || '';
-      // newValue is either a data: URI or a path to an already-uploaded image
-      if (newValue.startsWith('data:')) {
-        // Upload image to GitHub, get path
-        const match = newValue.match(/^data:([^;]+);base64,(.+)$/);
-        if (!match) return res.status(400).json({ error: 'Invalid image data' });
-        const ext = match[1].split('/')[1] || 'jpg';
-        const filename = `client-${Date.now()}.${ext}`;
-        const result = await putSiteImage(site.githubRepo, filename, match[2], null);
-        const imgPath = `images/${filename}`;
-        el.attr('src', imgPath);
-      } else {
-        el.attr('src', newValue);
-      }
-    } else {
-      oldValue = el.text();
-      el.text(newValue);
-    }
-
-    // Remove injected oc-ids before saving back (keep HTML clean)
-    $('[data-oc-id]').removeAttr('data-oc-id');
-
-    const commitMsg = `Client edit [${req.user.username}]: ${site.business} — ${ocId}: "${String(oldValue).slice(0,40)}" → "${String(newValue).slice(0,40)}"`;
-    const result = await putSiteHTML(site.githubRepo, $.html(), sha, commitMsg);
-
-    const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
-
-    await discord.notify(
-      `🖊️ **${site.business}** — site edited by \`${req.user.username}\`\n` +
-      `Element \`${ocId}\` (${tag}): "${String(oldValue).slice(0,60)}" → "${String(newValue).slice(0,60)}"\n` +
-      `📝 ${commitUrl}`
-    );
-
-    res.json({ ok: true, commitUrl });
-  } catch (err) {
-    console.error('[sites] edit error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /:slug/duplicate — clone an item (menu card, list row, etc.) keeping its
-// styling, insert the copy right after, so clients can extend a section.
-router.post('/:slug/duplicate', requireSiteAccess, async (req, res) => {
-  const { slug } = req.params;
-  const { ocId } = req.body;
-  if (!ocId) return res.status(400).json({ error: 'Missing ocId' });
-
-  try {
-    const sites = await readData('sites');
-    const site = sites?.[slug];
-    if (!site) return res.status(404).json({ error: 'Site not found' });
-
-    const { html, sha } = await getSiteHTML(site.githubRepo);
-    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
+    const html = await drafts.getWorking(slug, site);
+    if (!html) return res.status(500).json({ error: 'Could not load site HTML' });
 
     const $ = cheerio.load(html, { decodeEntities: false });
     injectOcIds($);
-
-    const el = $(`[data-oc-id="${ocId}"]`);
-    if (!el.length) return res.status(404).json({ error: 'Element not found' });
-
-    // Walk up to the nearest "item" — a repeated block (li, or a child whose
-    // parent has siblings of the same tag). Falls back to the element itself.
-    let item = el;
-    const climb = el.parents().toArray();
-    for (const p of [el.get(0), ...climb]) {
-      const $p = $(p);
-      const tag = p.tagName?.toLowerCase();
-      if (!tag || tag === 'body' || tag === 'section' || tag === 'main') break;
-      const sameSibs = $p.siblings(tag).length;
-      if (tag === 'li' || sameSibs >= 1) { item = $p; break; }
-      item = $p;
-    }
-
-    const clone = $(item.get(0)).clone();
-    clone.removeAttr('data-oc-id');
-    clone.find('[data-oc-id]').removeAttr('data-oc-id');
-    // Blank out cloned images so the copy is obviously new/empty
-    if (clone.is('img')) clone.attr('src', '');
-    clone.find('img').attr('src', '');
-    item.after('\n').after(clone);
-
-    $('[data-oc-id]').removeAttr('data-oc-id');
-    const commitMsg = `Client add [${req.user.username}]: ${site.business} — duplicated a ${item.get(0).tagName?.toLowerCase()} section item`;
-    const result = await putSiteHTML(site.githubRepo, $.html(), sha, commitMsg);
-    const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
-
-    await discord.notify(`➕ **${site.business}** — \`${req.user.username}\` added a new item to a section\n📝 ${commitUrl}`);
-    res.json({ ok: true, commitUrl });
-  } catch (err) {
-    console.error('[sites] duplicate error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /:slug/remove — delete an item the client no longer wants
-router.post('/:slug/remove', requireSiteAccess, async (req, res) => {
-  const { slug } = req.params;
-  const { ocId } = req.body;
-  if (!ocId) return res.status(400).json({ error: 'Missing ocId' });
-
-  try {
-    const sites = await readData('sites');
-    const site = sites?.[slug];
-    if (!site) return res.status(404).json({ error: 'Site not found' });
-
-    const { html, sha } = await getSiteHTML(site.githubRepo);
-    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
-
-    const $ = cheerio.load(html, { decodeEntities: false });
-    injectOcIds($);
-
-    const el = $(`[data-oc-id="${ocId}"]`);
-    if (!el.length) return res.status(404).json({ error: 'Element not found' });
-
-    let item = el;
-    const climb = el.parents().toArray();
-    for (const p of [el.get(0), ...climb]) {
-      const $p = $(p);
-      const tag = p.tagName?.toLowerCase();
-      if (!tag || tag === 'body' || tag === 'section' || tag === 'main') break;
-      const sameSibs = $p.siblings(tag).length;
-      if (tag === 'li' || sameSibs >= 1) { item = $p; break; }
-      item = $p;
-    }
-    item.remove();
-
-    $('[data-oc-id]').removeAttr('data-oc-id');
-    const commitMsg = `Client remove [${req.user.username}]: ${site.business} — deleted a section item`;
-    const result = await putSiteHTML(site.githubRepo, $.html(), sha, commitMsg);
-    const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
-
-    await discord.notify(`➖ **${site.business}** — \`${req.user.username}\` removed a section item\n📝 ${commitUrl}`);
-    res.json({ ok: true, commitUrl });
-  } catch (err) {
-    console.error('[sites] remove error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ── Section-level operations (studio Sections tab) ─────────────────────────────
-// Sections = top-level content blocks (header/section/footer, direct children of
-// body or a single wrapping <main>). Same cheerio+commit pattern as edit/duplicate.
-
-const DRY = () => process.env.CUSTOMIZE_DRY_RUN === '1';
-
-async function sectionOp(req, res, verb, apply) {
-  const { slug } = req.params;
-  const { sectionId } = req.body;
-  if (!sectionId) return res.status(400).json({ error: 'Missing sectionId' });
-  try {
-    const sites = await readData('sites');
-    const site = sites?.[slug];
-    if (!site) return res.status(404).json({ error: 'Site not found' });
-
-    const { html, sha } = await getSiteHTML(site.githubRepo);
-    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
-
-    const $ = cheerio.load(html, { decodeEntities: false });
     injectOcSecs($);
-    const el = $(`[data-oc-sec="${sectionId}"]`);
-    if (!el.length) return res.status(404).json({ error: 'Section not found' });
-
-    const problem = apply($, el);
-    if (problem) return res.status(400).json({ error: problem });
-
-    $('[data-oc-sec]').removeAttr('data-oc-sec');
+    const extra = await mutate($, site);
+    if (extra && extra.error) return res.status(extra.status || 400).json({ error: extra.error });
     $('[data-oc-id]').removeAttr('data-oc-id');
-
-    if (DRY()) return res.json({ ok: true, dryRun: true });
-
-    const msg = `Client ${verb} [${req.user.username}]: ${site.business}`;
-    const result = await putSiteHTML(site.githubRepo, $.html(), sha, msg);
-    const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
-    await discord.notify(`✎ **${site.business}** — \`${req.user.username}\` ${verb}\n📝 ${commitUrl}`);
-    res.json({ ok: true, commitUrl });
+    $('[data-oc-sec]').removeAttr('data-oc-sec');
+    await drafts.saveWorking(slug, $.html(), html);
+    res.json({ ok: true, draft: true, ...(extra || {}) });
   } catch (err) {
-    console.error(`[sites] section ${verb} error:`, err.message);
+    console.error('[sites] op error:', err.message);
     res.status(500).json({ error: err.message });
   }
 }
 
-router.post('/:slug/section/move', requireSiteAccess, (req, res) =>
-  sectionOp(req, res, 'moved a section', ($, el) => {
-    const dir = req.body.dir;
-    const sib = dir === 'up' ? el.prev('[data-oc-sec]') : el.next('[data-oc-sec]');
-    if (!sib.length) return `Already at the ${dir === 'up' ? 'top' : 'bottom'}`;
-    if (dir === 'up') el.insertBefore(sib); else el.insertAfter(sib);
-  }));
+// Find the nearest repeated "item" ancestor for an element (menu card, list row).
+function climbToItem($, el) {
+  let item = el;
+  for (const p of [el.get(0), ...el.parents().toArray()]) {
+    const $p = $(p);
+    const tag = p.tagName?.toLowerCase();
+    if (!tag || tag === 'body' || tag === 'section' || tag === 'main') break;
+    if (tag === 'li' || $p.siblings(tag).length >= 1) { item = $p; break; }
+    item = $p;
+  }
+  return item;
+}
 
-router.post('/:slug/section/duplicate', requireSiteAccess, (req, res) =>
-  sectionOp(req, res, 'duplicated a section', ($, el) => {
-    const clone = $(el.get(0)).clone();
-    clone.removeAttr('data-oc-sec');
-    el.after('\n').after(clone);
-  }));
+function normalizeHref(v) {
+  const s = String(v || '').trim();
+  if (!s) return '#';
+  if (/^(https?:|mailto:|tel:|#|\/)/i.test(s)) return s;
+  if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s)) return 'mailto:' + s;
+  if (/^[+()\d][\d\s()+-]{5,}$/.test(s)) return 'tel:' + s.replace(/\s+/g, '');
+  return 'https://' + s;
+}
 
-router.post('/:slug/section/remove', requireSiteAccess, (req, res) =>
-  sectionOp(req, res, 'removed a section', ($, el) => {
-    if ($('[data-oc-sec]').length <= 1) return 'Cannot delete the only section';
-    el.remove();
-  }));
+// Sanitize rich-text HTML to a safe inline subset (strips scripts/handlers/etc.)
+const RICH_TAGS = new Set(['b', 'strong', 'i', 'em', 'u', 's', 'br', 'a', 'span', 'p', 'div']);
+const RICH_STYLE = new Set(['color', 'font-size', 'font-weight', 'font-style', 'text-decoration', 'text-align']);
+function sanitizeRich(dirty) {
+  const $ = cheerio.load(`<div id="__ocr">${dirty || ''}</div>`, { decodeEntities: false });
+  $('#__ocr *').each((_, el) => {
+    const $el = $(el);
+    const tag = el.tagName?.toLowerCase();
+    if (!RICH_TAGS.has(tag)) { $el.replaceWith($el.contents()); return; }
+    Object.keys(el.attribs || {}).forEach(a => {
+      if (tag === 'a' && a === 'href') {
+        const h = $el.attr('href') || '';
+        if (!/^(https?:|mailto:|tel:|#|\/)/i.test(h)) $el.removeAttr('href');
+      } else if (a === 'style') {
+        const safe = [];
+        ($el.attr('style') || '').split(';').forEach(decl => {
+          const i = decl.indexOf(':'); if (i < 0) return;
+          const k = decl.slice(0, i).trim().toLowerCase(), v = decl.slice(i + 1).trim();
+          if (RICH_STYLE.has(k) && v && !/url\(|expression|javascript:/i.test(v)) safe.push(`${k}:${v}`);
+        });
+        if (safe.length) $el.attr('style', safe.join(';')); else $el.removeAttr('style');
+      } else {
+        $el.removeAttr(a);
+      }
+    });
+    if (tag === 'a') $el.attr('target', '_blank');
+  });
+  return $('#__ocr').html();
+}
 
-// ── Section template library (studio "+ Add section") ──────────────────────────
-// Self-contained, theme-aware snippets: inline styles reference --oc-* vars (set
-// by the Design tab / new sites) with sensible fallbacks so they look good anywhere.
+// ── Element edit (text / image / map / rich HTML / link destination) ────────────
+router.post('/:slug/edit', requireSiteAccess, (req, res) => opDraft(req, res, async ($, site) => {
+  const { ocId, newValue, isImage, isMap, isHtml, align, linkHref } = req.body;
+  if (!ocId) return { error: 'Missing ocId' };
+  const el = $(`[data-oc-id="${ocId}"]`);
+  if (!el.length) return { error: 'Element not found', status: 404 };
+  const tag = el.prop('tagName').toLowerCase();
 
+  // Link destination (independent of text)
+  if (linkHref !== undefined) {
+    const a = el.is('a') ? el : el.find('a').first();
+    if (!a.length) return { error: 'That element has no link to point' };
+    a.attr('href', normalizeHref(linkHref));
+  }
+
+  if (newValue !== undefined && newValue !== null) {
+    if (isMap || (tag === 'iframe' && /google\.com\/maps|maps\.google/.test(el.attr('src') || ''))) {
+      const q = encodeURIComponent(String(newValue).trim()).replace(/%20/g, '+');
+      el.attr('src', `https://www.google.com/maps?q=${q}&output=embed`);
+    } else if (isImage || tag === 'img') {
+      if (String(newValue).startsWith('data:')) {
+        const m = String(newValue).match(/^data:([^;]+);base64,(.+)$/);
+        if (!m) return { error: 'Invalid image data' };
+        const ext = m[1].split('/')[1] || 'jpg';
+        const fn = `client-${Date.now()}.${ext}`;
+        await putSiteImage(site.githubRepo, fn, m[2], null);
+        el.attr('src', `images/${fn}`);
+      } else {
+        el.attr('src', newValue);
+      }
+    } else if (isHtml) {
+      el.html(sanitizeRich(newValue));
+      if (align) el.css('text-align', align);
+    } else {
+      el.text(newValue);
+      if (align) el.css('text-align', align);
+    }
+  } else if (align) {
+    el.css('text-align', align);
+  }
+}));
+
+// ── Duplicate / remove an item within a section ─────────────────────────────────
+router.post('/:slug/duplicate', requireSiteAccess, (req, res) => opDraft(req, res, ($) => {
+  const { ocId } = req.body;
+  if (!ocId) return { error: 'Missing ocId' };
+  const el = $(`[data-oc-id="${ocId}"]`);
+  if (!el.length) return { error: 'Element not found', status: 404 };
+  const item = climbToItem($, el);
+  const clone = $(item.get(0)).clone();
+  clone.removeAttr('data-oc-id');
+  clone.find('[data-oc-id]').removeAttr('data-oc-id');
+  if (clone.is('img')) clone.attr('src', '');
+  clone.find('img').attr('src', '');
+  item.after('\n').after(clone);
+}));
+
+router.post('/:slug/remove', requireSiteAccess, (req, res) => opDraft(req, res, ($) => {
+  const { ocId } = req.body;
+  if (!ocId) return { error: 'Missing ocId' };
+  const el = $(`[data-oc-id="${ocId}"]`);
+  if (!el.length) return { error: 'Element not found', status: 404 };
+  climbToItem($, el).remove();
+}));
+
+// ── Section operations ──────────────────────────────────────────────────────────
+function sectionRoute(applyFn) {
+  return (req, res) => opDraft(req, res, ($, site) => {
+    const { sectionId } = req.body;
+    if (!sectionId) return { error: 'Missing sectionId' };
+    const el = $(`[data-oc-sec="${sectionId}"]`);
+    if (!el.length) return { error: 'Section not found', status: 404 };
+    return applyFn($, el, site);
+  });
+}
+
+router.post('/:slug/section/move', requireSiteAccess, (req, res) => opDraft(req, res, ($) => {
+  const { sectionId, dir } = req.body;
+  if (!sectionId) return { error: 'Missing sectionId' };
+  const el = $(`[data-oc-sec="${sectionId}"]`);
+  if (!el.length) return { error: 'Section not found', status: 404 };
+  const sib = dir === 'up' ? el.prev('[data-oc-sec]') : el.next('[data-oc-sec]');
+  if (!sib.length) return { error: `Already at the ${dir === 'up' ? 'top' : 'bottom'}` };
+  if (dir === 'up') el.insertBefore(sib); else el.insertAfter(sib);
+}));
+
+router.post('/:slug/section/duplicate', requireSiteAccess, sectionRoute(($, el) => {
+  const clone = $(el.get(0)).clone();
+  clone.removeAttr('data-oc-sec');
+  el.after('\n').after(clone);
+}));
+
+router.post('/:slug/section/remove', requireSiteAccess, sectionRoute(($, el) => {
+  if ($('[data-oc-sec]').length <= 1) return { error: 'Cannot delete the only section' };
+  el.remove();
+}));
+
+// Reorder sections to match a given order of section ids
+router.post('/:slug/section/reorder', requireSiteAccess, (req, res) => opDraft(req, res, ($) => {
+  const order = req.body.order;
+  if (!Array.isArray(order) || !order.length) return { error: 'Missing order' };
+  if (!$(`[data-oc-sec="${order[0]}"]`).length) return { error: 'Section not found', status: 404 };
+  // Re-query fresh each step — a moved cheerio ref goes stale and drops nodes.
+  for (let i = 1; i < order.length; i++) {
+    const node = $(`[data-oc-sec="${order[i]}"]`);
+    const prevNode = $(`[data-oc-sec="${order[i - 1]}"]`);
+    if (node.length && prevNode.length) node.insertAfter(prevNode);
+  }
+}));
+
+// Set a section's background (color and/or uploaded image)
+router.post('/:slug/section/style', requireSiteAccess, (req, res) => opDraft(req, res, async ($, site) => {
+  const { sectionId, bg, bgImage } = req.body;
+  if (!sectionId) return { error: 'Missing sectionId' };
+  const el = $(`[data-oc-sec="${sectionId}"]`);
+  if (!el.length) return { error: 'Section not found', status: 404 };
+  if (bg) el.css('background', bg);
+  if (bgImage && String(bgImage).startsWith('data:')) {
+    const m = String(bgImage).match(/^data:([^;]+);base64,(.+)$/);
+    if (m) {
+      const ext = m[1].split('/')[1] || 'jpg';
+      const fn = `bg-${Date.now()}.${ext}`;
+      await putSiteImage(site.githubRepo, fn, m[2], null);
+      el.css('background-image', `url('images/${fn}')`);
+      el.css('background-size', 'cover');
+      el.css('background-position', 'center');
+    }
+  }
+}));
+
+// ── Section template library ("+ Add section") ─────────────────────────────────
 const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='400'%20height='300'%3E%3Crect%20width='400'%20height='300'%20fill='%23e8e3da'/%3E%3Ctext%20x='200'%20y='158'%20font-family='sans-serif'%20font-size='17'%20fill='%239a8f80'%20text-anchor='middle'%3EYour%20photo%3C/text%3E%3C/svg%3E";
 const _h = 'font-family:var(--oc-heading-font,Georgia),serif';
 const _card = 'background:#fff;border:1px solid var(--oc-border,#ececec);border-radius:14px;padding:24px';
@@ -296,47 +266,41 @@ const SECTION_TEMPLATES = {
   map: `<section style="padding:72px 24px;background:var(--oc-surface,#faf9f6)"><div style="max-width:900px;margin:0 auto"><h2 style="${_h};font-size:28px;text-align:center;margin:0 0 10px;color:var(--oc-text,#222)">Find us</h2><p style="text-align:center;color:var(--oc-text,#555);margin:0 0 20px">123 Main Street, Your City, ST 00000</p><div style="border-radius:14px;overflow:hidden;border:1px solid var(--oc-border,#e6e6e6)"><iframe src="https://www.google.com/maps?q=Times+Square,+New+York&output=embed" width="100%" height="380" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div></div></section>`,
 };
 
-router.post('/:slug/section/add', requireSiteAccess, async (req, res) => {
-  const { slug } = req.params;
+// Small elements to add inside an existing section
+const ELEMENT_TEMPLATES = {
+  heading: `<h2 style="${_h};font-size:26px;color:var(--oc-text,#222);margin:24px auto 12px;max-width:900px">New heading</h2>`,
+  paragraph: `<p style="font-size:16px;line-height:1.7;color:var(--oc-text,#555);margin:12px auto;max-width:760px">New paragraph — click to edit this text and say whatever you like.</p>`,
+  button: `<div style="text-align:center;margin:20px auto"><a href="#" style="display:inline-block;background:var(--oc-accent,#b0563d);color:var(--oc-accent-ink,#fff);padding:12px 26px;border-radius:10px;text-decoration:none;font-weight:600">New button</a></div>`,
+  image: `<div style="text-align:center;margin:20px auto;max-width:760px"><img src="${PLACEHOLDER_IMG}" alt="New image" style="max-width:100%;border-radius:12px"></div>`,
+};
+
+router.post('/:slug/section/add', requireSiteAccess, (req, res) => opDraft(req, res, ($) => {
   const { template, afterSectionId } = req.body;
   const tpl = SECTION_TEMPLATES[template];
-  if (!tpl) return res.status(400).json({ error: 'Unknown section template' });
-  try {
-    if (DRY()) return res.json({ ok: true, dryRun: true, html: tpl });
-
-    const sites = await readData('sites');
-    const site = sites?.[slug];
-    if (!site) return res.status(404).json({ error: 'Site not found' });
-    const { html, sha } = await getSiteHTML(site.githubRepo);
-    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
-
-    const $ = cheerio.load(html, { decodeEntities: false });
-    injectOcSecs($);
-    const anchor = afterSectionId ? $(`[data-oc-sec="${afterSectionId}"]`) : null;
-    if (anchor && anchor.length) anchor.after('\n' + tpl);
-    else {
-      const body = $('body');
-      const main = body.children('main');
-      (main.length === 1 ? main : body).append('\n' + tpl);
-    }
-    $('[data-oc-sec]').removeAttr('data-oc-sec');
-    $('[data-oc-id]').removeAttr('data-oc-id');
-
-    const result = await putSiteHTML(site.githubRepo, $.html(), sha, `Client added a "${template}" section [${req.user.username}]: ${site.business}`);
-    const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
-    await discord.notify(`➕ **${site.business}** — \`${req.user.username}\` added a ${template} section\n📝 ${commitUrl}`);
-    res.json({ ok: true, commitUrl });
-  } catch (err) {
-    console.error('[sites] section add error:', err.message);
-    res.status(500).json({ error: err.message });
+  if (!tpl) return { error: 'Unknown section template' };
+  const anchor = afterSectionId ? $(`[data-oc-sec="${afterSectionId}"]`) : null;
+  if (anchor && anchor.length) anchor.after('\n' + tpl);
+  else {
+    const body = $('body');
+    const main = body.children('main');
+    (main.length === 1 ? main : body).append('\n' + tpl);
   }
-});
+}));
 
-// ── Design / theme (studio Design tab) ─────────────────────────────────────────
-// Injects one managed <style id="oc-theme"> block (between markers) into <head>.
-// Fonts apply reliably everywhere; colors set --oc-* vars (full effect on sites
-// that use them) plus a best-effort accent layer for links/buttons on legacy sites.
+router.post('/:slug/element/add', requireSiteAccess, (req, res) => opDraft(req, res, ($) => {
+  const { sectionId, kind } = req.body;
+  const snippet = ELEMENT_TEMPLATES[kind];
+  if (!snippet) return { error: 'Unknown element' };
+  const sec = sectionId ? $(`[data-oc-sec="${sectionId}"]`) : null;
+  if (sec && sec.length) {
+    const inner = sec.children().first();
+    (inner.length ? inner : sec).append('\n' + snippet);
+  } else {
+    return { error: 'Pick a section first' };
+  }
+}));
 
+// ── Design / theme ──────────────────────────────────────────────────────────────
 const T_START = '<!-- OC-THEME:START -->';
 const T_END = '<!-- OC-THEME:END -->';
 
@@ -381,7 +345,6 @@ function buildThemeBlock(t) {
     `${baseLayer}\n${accentLayer}\n</style>\n${T_END}`;
 }
 
-// GET saved theme
 router.get('/:slug/theme', requireSiteAccess, async (req, res) => {
   try {
     const all = (await readData('customizations')) || {};
@@ -389,61 +352,121 @@ router.get('/:slug/theme', requireSiteAccess, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST theme — ?dry=1 returns the block for live preview; otherwise inject + persist
+// POST theme — ?dry=1 returns the block for live preview; otherwise write to draft
 router.post('/:slug/theme', requireSiteAccess, async (req, res) => {
   const { slug } = req.params;
   const t = req.body || {};
   try {
     const block = buildThemeBlock(t);
-    if (req.query.dry === '1' || DRY()) return res.json({ ok: true, dryRun: true, block });
+    if (req.query.dry === '1') return res.json({ ok: true, dryRun: true, block });
 
     const sites = await readData('sites');
     const site = sites?.[slug];
     if (!site) return res.status(404).json({ error: 'Site not found' });
-    const { html, sha } = await getSiteHTML(site.githubRepo);
-    if (!html) return res.status(500).json({ error: 'Could not fetch site HTML' });
-
-    let patched;
-    if (html.includes(T_START)) patched = html.replace(new RegExp(`${T_START}[\\s\\S]*?${T_END}`), block);
-    else patched = html.replace(/<\/head>/i, `${block}\n</head>`);
-    await putSiteHTML(site.githubRepo, patched, sha, `Design: theme update for ${site.business}`);
+    const html = await drafts.getWorking(slug, site);
+    const patched = html.includes(T_START)
+      ? html.replace(new RegExp(`${T_START}[\\s\\S]*?${T_END}`), block)
+      : html.replace(/<\/head>/i, `${block}\n</head>`);
+    await drafts.saveWorking(slug, patched, html);
 
     const all = (await readData('customizations')) || {};
     all[slug] = { ...(all[slug] || {}), theme: t };
     await writeData('customizations', all, `Theme config for ${slug}`);
-    res.json({ ok: true });
+    res.json({ ok: true, draft: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Proxy handler — injects overlay into site HTML ─────────────────────────────
+// ── SEO (auto-generated defaults, editable) ─────────────────────────────────────
+router.get('/:slug/seo', requireSiteAccess, async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const sites = await readData('sites');
+    const site = sites?.[slug];
+    if (!site) return res.status(404).json({ error: 'Site not found' });
+    const html = await drafts.getWorking(slug, site);
+    const $ = cheerio.load(html, { decodeEntities: false });
+    let title = $('head title').first().text().trim();
+    let desc = ($('meta[name="description"]').attr('content') || '').trim();
+    if (!title) title = [site.business, site.category, site.city].filter(Boolean).join(' — ') || site.business || '';
+    if (!desc) desc = `${site.business || 'We'}${site.category ? ' — ' + site.category : ''}${site.city ? ' in ' + site.city : ''}. Visit us or get in touch.`;
+    res.json({ title, description: desc });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
+router.post('/:slug/seo', requireSiteAccess, (req, res) => opDraft(req, res, ($) => {
+  const { title, description } = req.body;
+  if (title !== undefined) {
+    let t = $('head title').first();
+    if (!t.length) { $('head').prepend('<title></title>'); t = $('head title').first(); }
+    t.text(String(title).slice(0, 120));
+    const og = $('meta[property="og:title"]'); if (og.length) og.attr('content', String(title).slice(0, 120));
+  }
+  if (description !== undefined) {
+    let m = $('meta[name="description"]');
+    if (!m.length) { $('head').append('<meta name="description" content="">'); m = $('meta[name="description"]'); }
+    m.attr('content', String(description).slice(0, 300));
+    const od = $('meta[property="og:description"]'); if (od.length) od.attr('content', String(description).slice(0, 300));
+  }
+}));
+
+// ── Draft workflow: publish / undo / discard / state ────────────────────────────
+router.get('/:slug/draft-state', requireSiteAccess, async (req, res) => {
+  try { res.json(await drafts.draftState(req.params.slug)); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/:slug/undo', requireSiteAccess, async (req, res) => {
+  try { const undone = await drafts.undo(req.params.slug); res.json({ ok: true, undone }); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/:slug/discard', requireSiteAccess, async (req, res) => {
+  try { await drafts.discard(req.params.slug); res.json({ ok: true }); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/:slug/publish', requireSiteAccess, async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const sites = await readData('sites');
+    const site = sites?.[slug];
+    if (!site) return res.status(404).json({ error: 'Site not found' });
+    const st = await drafts.draftState(slug);
+    if (!st.hasDraft) return res.json({ ok: true, nothing: true });
+    const html = await drafts.getWorking(slug, site);
+    const { sha } = await getSiteHTML(site.githubRepo);
+    const result = await putSiteHTML(site.githubRepo, html, sha, `Published edits [${req.user.username}]: ${site.business}`);
+    await drafts.discard(slug);
+    const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
+    await discord.notify(`🚀 **${site.business}** — \`${req.user.username}\` published changes\n📝 ${commitUrl}`);
+    res.json({ ok: true, commitUrl });
+  } catch (err) {
+    console.error('[sites] publish error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Proxy handler — serves the working draft (or live) into the studio canvas ────
 async function proxyHandler(req, res) {
   const { slug } = req.params;
   const token = req.query.token;
-
-  // Token required to access edit mode
   if (!token) return res.redirect(`/login?next=/preview/${slug}`);
 
   try {
-    const { requireAuth: _ra } = require('../middleware/auth');
     const jwt = require('jsonwebtoken');
     const SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
     let user;
-    try {
-      user = jwt.verify(token, SECRET);
-    } catch {
-      return res.redirect(`/login?next=/preview/${slug}`);
-    }
-    if (user.role !== 'admin' && user.siteSlug !== slug) {
-      return res.status(403).send('Not your site');
-    }
+    try { user = jwt.verify(token, SECRET); }
+    catch { return res.redirect(`/login?next=/preview/${slug}`); }
+    if (user.role !== 'admin' && user.siteSlug !== slug) return res.status(403).send('Not your site');
 
     const sites = await readData('sites');
     const site = sites?.[slug];
     if (!site) return res.status(404).send('Site not found');
 
-    // Fetch HTML from GitHub raw (consistent source for both proxy and edit)
-    const { html } = await getSiteHTML(site.githubRepo);
+    const html = req.query.draft
+      ? await drafts.getWorking(slug, site)
+      : (await getSiteHTML(site.githubRepo)).html;
     if (!html) return res.status(500).send('Could not fetch site HTML');
 
     const $ = cheerio.load(html, { decodeEntities: false });
@@ -465,25 +488,15 @@ async function proxyHandler(req, res) {
     $('[srcset]').each((_, el) => {
       const v = $(el).attr('srcset');
       if (v) {
-        const fixed = v.replace(/([^,\s]+)(\s+\d+[wx])/g, (m, url, desc) => {
-          if (!url.startsWith('http') && !url.startsWith('//')) {
-            return `${base}/${url.replace(/^\//, '')}${desc}`;
-          }
-          return m;
-        });
-        $(el).attr('srcset', fixed);
+        $(el).attr('srcset', v.replace(/([^,\s]+)(\s+\d+[wx])/g, (m, url, desc) =>
+          (!url.startsWith('http') && !url.startsWith('//')) ? `${base}/${url.replace(/^\//, '')}${desc}` : m));
       }
     });
 
-    // Inject data-oc-id on all editable elements
     injectOcIds($);
-
-    // canvas=1 → also mark top-level sections (studio Sections tab)
     if (req.query.canvas) injectOcSecs($);
 
-    // raw=1 → clean proxied HTML (used by the customize studio live preview)
     if (!req.query.raw) {
-      // Inject meta tags and editor overlay before </body>
       $('head').append(`
         <meta name="oc-slug" content="${slug}">
         <meta name="oc-token" content="${token}">
@@ -501,9 +514,9 @@ async function proxyHandler(req, res) {
   }
 }
 
-// Inject sequential data-oc-id on all editable elements (every direct-text-bearing element + all images)
+// Inject sequential data-oc-id on editable elements (text-bearing els, imgs, map iframes)
 function injectOcIds($) {
-  const SKIP = new Set(['script','style','head','meta','link','noscript','template','svg','path','br','hr','input','textarea','select','button']);
+  const SKIP = new Set(['script', 'style', 'head', 'meta', 'link', 'noscript', 'template', 'svg', 'path', 'br', 'hr', 'input', 'textarea', 'select', 'button']);
   let idx = 1;
   $('body *').each((_, el) => {
     const tag = el.tagName?.toLowerCase();
@@ -514,16 +527,13 @@ function injectOcIds($) {
       return;
     }
     if (tag === 'iframe') {
-      // Google Maps embeds are editable (change the location); other iframes aren't
       if (/google\.com\/maps|maps\.google/.test($el.attr('src') || '') && !$el.attr('data-oc-id')) {
         $el.attr('data-oc-id', `oc-${String(idx).padStart(4, '0')}`); idx++;
       }
       return;
     }
     const hasDirectText = $el.contents().filter((_, n) => n.type === 'text' && n.data.trim().length > 0).length > 0;
-    if (hasDirectText && !$el.attr('data-oc-id')) {
-      $el.attr('data-oc-id', `oc-${String(idx).padStart(4, '0')}`); idx++;
-    }
+    if (hasDirectText && !$el.attr('data-oc-id')) { $el.attr('data-oc-id', `oc-${String(idx).padStart(4, '0')}`); idx++; }
   });
 }
 
