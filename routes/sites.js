@@ -15,6 +15,7 @@ router.get('/', async (req, res) => {
     if (!sites) return res.json({});
     const pub = {};
     for (const [slug, s] of Object.entries(sites)) {
+      if (s.hidden) continue; // not deployed / not ready for the public gallery
       pub[slug] = { business: s.business, city: s.city, category: s.category, renderUrl: s.renderUrl };
     }
     res.json(pub);
