@@ -39,7 +39,8 @@
   .kpi-label { font-size: 12px; color: #8a8378; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; display: flex; align-items: center; gap: 4px; }
   .kpi-value { font-size: 32px; font-weight: 800; color: #b0563d; margin: 8px 0 6px; line-height: 1; }
   .kpi-desc { font-size: 12px; color: #8a8378; line-height: 1.4; }
-  .info-btn { background: none; border: none; color: #e7e2d8; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+  .info-btn { background: none; border: none; color: #b3a795; cursor: pointer; padding: 0; line-height: 0; display: inline-flex; vertical-align: middle; transition: color .15s; }
+  .info-btn:hover { color: #b0563d; }
   .tooltip { display: none; position: absolute; bottom: calc(100% + 6px); left: 0; right: 0; background: #e7e2d8; color: #2b2721; font-size: 12px; padding: 10px; border-radius: 8px; z-index: 10; line-height: 1.5; }
   .kpi-card:hover .tooltip, .kpi-card:focus-within .tooltip { display: block; }
 
@@ -303,7 +304,7 @@ function render(d) {
 
 function kpiCard(label, value, desc, tooltip) {
   return `<div class="kpi-card" tabindex="0">
-    <div class="kpi-label">${label} <button class="info-btn" tabindex="-1">ℹ️</button></div>
+    <div class="kpi-label">${label} <button class="info-btn" tabindex="-1" aria-label="More info"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button></div>
     <div class="kpi-value">${value}</div>
     <div class="kpi-desc">${desc}</div>
     <div class="tooltip">${tooltip}</div>
