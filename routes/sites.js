@@ -2,7 +2,7 @@ const router = require('express').Router();
 const cheerio = require('cheerio');
 const fetch = require('node-fetch');
 const { requireAuth, requireSiteAccess } = require('../middleware/auth');
-const { readData, writeData, getSiteHTML, putSiteHTML, putSiteImage } = require('../lib/github-data');
+const { readData, writeData, getSiteHTML, putSiteHTML, putSiteImage, listSitePages, listFileCommits, getFileAtRef } = require('../lib/github-data');
 const drafts = require('../lib/drafts');
 const discord = require('../lib/discord');
 
@@ -43,13 +43,20 @@ router.get('/:slug', requireAuth, async (req, res) => {
 // cheerio, and save it back to the draft (NOT the live site). Live only changes
 // on Publish. mutate($, site) may be async, and may return { error, status } or
 // extra fields to merge into the JSON response.
+// Restrict page to a bare .html filename in the repo root (no path traversal).
+function safePage(p) {
+  const v = String(p || 'index.html');
+  return /^[\w.-]+\.html?$/i.test(v) && !v.includes('..') ? v : 'index.html';
+}
+
 async function opDraft(req, res, mutate) {
   try {
     const { slug } = req.params;
+    const page = safePage(req.body.page);
     const sites = await readData('sites');
     const site = sites?.[slug];
     if (!site) return res.status(404).json({ error: 'Site not found' });
-    const html = await drafts.getWorking(slug, site);
+    const html = await drafts.getWorking(slug, site, page);
     if (!html) return res.status(500).json({ error: 'Could not load site HTML' });
 
     const $ = cheerio.load(html, { decodeEntities: false });
@@ -59,7 +66,7 @@ async function opDraft(req, res, mutate) {
     if (extra && extra.error) return res.status(extra.status || 400).json({ error: extra.error });
     $('[data-oc-id]').removeAttr('data-oc-id');
     $('[data-oc-sec]').removeAttr('data-oc-sec');
-    await drafts.saveWorking(slug, $.html(), html);
+    await drafts.saveWorking(slug, $.html(), html, page);
     res.json({ ok: true, draft: true, ...(extra || {}) });
   } catch (err) {
     console.error('[sites] op error:', err.message);
@@ -360,14 +367,15 @@ router.post('/:slug/theme', requireSiteAccess, async (req, res) => {
     const block = buildThemeBlock(t);
     if (req.query.dry === '1') return res.json({ ok: true, dryRun: true, block });
 
+    const page = safePage(req.body.page);
     const sites = await readData('sites');
     const site = sites?.[slug];
     if (!site) return res.status(404).json({ error: 'Site not found' });
-    const html = await drafts.getWorking(slug, site);
+    const html = await drafts.getWorking(slug, site, page);
     const patched = html.includes(T_START)
       ? html.replace(new RegExp(`${T_START}[\\s\\S]*?${T_END}`), block)
       : html.replace(/<\/head>/i, `${block}\n</head>`);
-    await drafts.saveWorking(slug, patched, html);
+    await drafts.saveWorking(slug, patched, html, page);
 
     const all = (await readData('customizations')) || {};
     all[slug] = { ...(all[slug] || {}), theme: t };
@@ -380,10 +388,11 @@ router.post('/:slug/theme', requireSiteAccess, async (req, res) => {
 router.get('/:slug/seo', requireSiteAccess, async (req, res) => {
   try {
     const { slug } = req.params;
+    const page = safePage(req.query.page);
     const sites = await readData('sites');
     const site = sites?.[slug];
     if (!site) return res.status(404).json({ error: 'Site not found' });
-    const html = await drafts.getWorking(slug, site);
+    const html = await drafts.getWorking(slug, site, page);
     const $ = cheerio.load(html, { decodeEntities: false });
     let title = $('head title').first().text().trim();
     let desc = ($('meta[name="description"]').attr('content') || '').trim();
@@ -409,36 +418,74 @@ router.post('/:slug/seo', requireSiteAccess, (req, res) => opDraft(req, res, ($)
   }
 }));
 
+// ── Pages ───────────────────────────────────────────────────────────────────────
+router.get('/:slug/pages', requireSiteAccess, async (req, res) => {
+  try {
+    const sites = await readData('sites');
+    const site = sites?.[req.params.slug];
+    if (!site) return res.status(404).json({ error: 'Site not found' });
+    res.json({ pages: await listSitePages(site.githubRepo) });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Version history + restore ───────────────────────────────────────────────────
+router.get('/:slug/history', requireSiteAccess, async (req, res) => {
+  try {
+    const sites = await readData('sites');
+    const site = sites?.[req.params.slug];
+    if (!site) return res.status(404).json({ error: 'Site not found' });
+    res.json({ commits: await listFileCommits(site.githubRepo, safePage(req.query.page)) });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Load a past published version into the working draft (client reviews, then publishes)
+router.post('/:slug/restore', requireSiteAccess, async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { sha } = req.body;
+    const page = safePage(req.body.page);
+    if (!sha) return res.status(400).json({ error: 'Missing version id' });
+    const sites = await readData('sites');
+    const site = sites?.[slug];
+    if (!site) return res.status(404).json({ error: 'Site not found' });
+    const old = await getFileAtRef(site.githubRepo, page, sha);
+    const prev = await drafts.getWorking(slug, site, page);
+    await drafts.saveWorking(slug, old, prev, page);
+    res.json({ ok: true, draft: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── Draft workflow: publish / undo / discard / state ────────────────────────────
 router.get('/:slug/draft-state', requireSiteAccess, async (req, res) => {
-  try { res.json(await drafts.draftState(req.params.slug)); }
+  try { res.json(await drafts.draftState(req.params.slug, safePage(req.query.page))); }
   catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.post('/:slug/undo', requireSiteAccess, async (req, res) => {
-  try { const undone = await drafts.undo(req.params.slug); res.json({ ok: true, undone }); }
+  try { const undone = await drafts.undo(req.params.slug, safePage(req.body.page)); res.json({ ok: true, undone }); }
   catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.post('/:slug/discard', requireSiteAccess, async (req, res) => {
-  try { await drafts.discard(req.params.slug); res.json({ ok: true }); }
+  try { await drafts.discard(req.params.slug, safePage(req.body.page)); res.json({ ok: true }); }
   catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.post('/:slug/publish', requireSiteAccess, async (req, res) => {
   try {
     const { slug } = req.params;
+    const page = safePage(req.body.page);
     const sites = await readData('sites');
     const site = sites?.[slug];
     if (!site) return res.status(404).json({ error: 'Site not found' });
-    const st = await drafts.draftState(slug);
+    const st = await drafts.draftState(slug, page);
     if (!st.hasDraft) return res.json({ ok: true, nothing: true });
-    const html = await drafts.getWorking(slug, site);
-    const { sha } = await getSiteHTML(site.githubRepo);
-    const result = await putSiteHTML(site.githubRepo, html, sha, `Published edits [${req.user.username}]: ${site.business}`);
-    await drafts.discard(slug);
+    const html = await drafts.getWorking(slug, site, page);
+    const { sha } = await getSiteHTML(site.githubRepo, page);
+    const result = await putSiteHTML(site.githubRepo, html, sha, `Published edits [${req.user.username}]: ${site.business} (${page})`, page);
+    await drafts.discard(slug, page);
     const commitUrl = `https://github.com/${GH_ORG}/${site.githubRepo}/commit/${result?.commit?.sha || ''}`;
-    await discord.notify(`🚀 **${site.business}** — \`${req.user.username}\` published changes\n📝 ${commitUrl}`);
+    await discord.notify(`🚀 **${site.business}** — \`${req.user.username}\` published changes to ${page}\n📝 ${commitUrl}`);
     res.json({ ok: true, commitUrl });
   } catch (err) {
     console.error('[sites] publish error:', err.message);
@@ -464,9 +511,10 @@ async function proxyHandler(req, res) {
     const site = sites?.[slug];
     if (!site) return res.status(404).send('Site not found');
 
+    const page = safePage(req.query.page);
     const html = req.query.draft
-      ? await drafts.getWorking(slug, site)
-      : (await getSiteHTML(site.githubRepo)).html;
+      ? await drafts.getWorking(slug, site, page)
+      : (await getSiteHTML(site.githubRepo, page)).html;
     if (!html) return res.status(500).send('Could not fetch site HTML');
 
     const $ = cheerio.load(html, { decodeEntities: false });

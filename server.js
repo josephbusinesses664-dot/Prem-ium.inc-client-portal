@@ -19,6 +19,7 @@ app.use('/api/sites', require('./routes/sites'));
 app.use('/api/requests', require('./routes/requests'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/contact', require('./routes/contact'));
 app.use('/api/customize', require('./routes/customize'));
 
 // Preview proxy — must come after API routes

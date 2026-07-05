@@ -33,10 +33,14 @@ router.post('/', requireAuth, async (req, res) => {
     requests.push(entry);
     await writeData('requests', requests, `New change request from ${req.user.username} for ${businessName}`);
 
+    // Route into the delegation channel so Joseph/Caleb can pick it up.
     await discord.notify(
-      `📋 **Change Request** from \`${req.user.username}\` (${businessName})\n` +
-      `> ${description.slice(0, 400)}\n` +
-      `_ID: ${entry.id}_`
+      `🛠️ **New CHANGE request** (from the portal)\n` +
+      `**From:** \`${req.user.username}\` · site: \`${businessName}\`\n` +
+      `**They want:**\n> ${description.replace(/\n/g, '\n> ').slice(0, 1500)}\n` +
+      `\n@Joseph — please prepare a plan; implement it if it's simple, otherwise delegate to Caleb.\n` +
+      `_ID: ${entry.id}_`,
+      discord.DELEGATION_CH
     );
 
     res.json({ ok: true, id: entry.id });
