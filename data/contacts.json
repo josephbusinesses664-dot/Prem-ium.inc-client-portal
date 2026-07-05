@@ -9,5 +9,16 @@
     "siteSlug": null,
     "status": "new",
     "createdAt": "2026-07-05T02:28:16.611Z"
+  },
+  {
+    "id": "7ef40c56-f62c-43b7-b69e-59056d8d5f96",
+    "type": "change-request",
+    "source": "portal",
+    "name": "Test — QueSnack",
+    "email": "quesnack@example.com",
+    "message": "Please change our opening hours to 11am-11pm and update the phone number. TEST submission.",
+    "siteSlug": "quesnack",
+    "status": "new",
+    "createdAt": "2026-07-05T02:28:18.080Z"
   }
 ]
