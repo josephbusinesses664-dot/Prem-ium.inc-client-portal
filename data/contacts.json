@@ -20,5 +20,16 @@
     "siteSlug": "quesnack",
     "status": "new",
     "createdAt": "2026-07-05T02:28:18.080Z"
+  },
+  {
+    "id": "c716b82a-e511-444a-b2db-93714f864af2",
+    "type": "build-request",
+    "source": "prem-ium.inc website",
+    "name": "TEST — Maria (bakery)",
+    "email": "maria@example.com",
+    "message": "[New website] I need a simple site with my menu, hours and an order button. (automated test)",
+    "siteSlug": null,
+    "status": "new",
+    "createdAt": "2026-07-05T02:38:24.963Z"
   }
 ]
