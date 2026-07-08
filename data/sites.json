@@ -322,5 +322,17 @@
     "owner": "",
     "addedAt": "2026-07-05",
     "autoSynced": true
+  },
+  "california-barber-shop": {
+    "business": "California Barber Shop",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://preview-california-barber-shop.onrender.com",
+    "githubRepo": "preview-california-barber-shop",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-08",
+    "autoSynced": true
   }
 }
