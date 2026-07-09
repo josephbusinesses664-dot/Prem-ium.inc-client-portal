@@ -970,5 +970,29 @@
     "owner": "",
     "addedAt": "2026-07-09",
     "autoSynced": true
+  },
+  "karthik-mens-beauty-salon-secunderabad": {
+    "business": "prospect site preview: karthik-mens-beauty-salon-secunderabad",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://preview-karthik-mens-beauty-salon-secunderabad.onrender.com",
+    "githubRepo": "preview-karthik-mens-beauty-salon-secunderabad",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-09",
+    "autoSynced": true
+  },
+  "mane-holige": {
+    "business": "Mane Holige",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://preview-mane-holige.onrender.com",
+    "githubRepo": "preview-mane-holige",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-09",
+    "autoSynced": true
   }
 }
