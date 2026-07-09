@@ -958,5 +958,17 @@
     "owner": "",
     "addedAt": "2026-07-09",
     "autoSynced": true
+  },
+  "golden-scissor-secunderabad": {
+    "business": "prospect site preview: golden-scissor-secunderabad",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://preview-golden-scissor-secunderabad.onrender.com",
+    "githubRepo": "preview-golden-scissor-secunderabad",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-09",
+    "autoSynced": true
   }
 }
