@@ -360,7 +360,7 @@ async function boot() {
     if (r.status === 401) { localStorage.clear(); location.href = '/login?next=/studio'; return; }
     const site = await r.json();
     document.getElementById('biz').textContent = site.business || 'your site';
-    document.getElementById('canvas-url').textContent = site.renderUrl || '';
+    document.getElementById('canvas-url').textContent = `${location.origin}/live/${slug}`;
   } catch (e) {}
   initDesign(); loadPages(); loadTheme(); loadSeo(); loadHistory(); refreshDraft();
   frame.src = `/preview/${slug}?token=${encodeURIComponent(token)}&raw=1&canvas=1&draft=1&page=${encodeURIComponent(curPage)}`;

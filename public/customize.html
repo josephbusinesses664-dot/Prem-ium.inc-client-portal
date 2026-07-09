@@ -723,7 +723,7 @@ async function loadSite() {
     const rs = await fetch(`/api/sites/${slug}`, { headers: { Authorization: `Bearer ${token}` } });
     if (rs.status === 401) { localStorage.clear(); location.href = '/login?next=/customize'; return; }
     siteInfo = await rs.json();
-    document.getElementById('site-name').textContent = `${siteInfo.business} — ${siteInfo.renderUrl}`;
+    document.getElementById('site-name').textContent = `${siteInfo.business} — ${location.origin}/live/${slug}`;
     document.getElementById('splash-text').placeholder = siteInfo.business;
 
     const rh = await fetch(`/preview/${slug}?token=${encodeURIComponent(token)}&raw=1&draft=1`);
