@@ -25,6 +25,10 @@ app.use('/api/customize', require('./routes/customize'));
 // Preview proxy — must come after API routes
 app.get('/preview/:slug', require('./routes/sites').proxyHandler);
 
+// Public live site serving — each site rendered straight from its GitHub repo
+app.get('/live/:slug', require('./routes/sites').liveHandler);
+app.get('/live/:slug/*', require('./routes/sites').liveHandler);
+
 // SPA fallback for client-side pages
 app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
