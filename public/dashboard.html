@@ -137,9 +137,10 @@ async function init() {
 
     document.getElementById('biz-name').textContent = site.business;
     document.getElementById('biz-info').textContent = [site.city, site.category].filter(Boolean).join(' · ');
-    document.getElementById('preview-url').textContent = site.renderUrl;
-    document.getElementById('site-iframe').src = site.renderUrl;
-    document.getElementById('view-live').href = site.renderUrl;
+    const liveUrl = `/live/${slug}`;
+    document.getElementById('preview-url').textContent = location.origin + liveUrl;
+    document.getElementById('site-iframe').src = liveUrl;
+    document.getElementById('view-live').href = liveUrl;
     document.getElementById('edit-mode').href = `/studio`;
     document.getElementById('github-history').href = `https://github.com/josephbusinesses664-dot/${encodeURIComponent(site.githubRepo)}/commits/main`;
     document.title = site.business + ' — prem-ium.inc Portal';

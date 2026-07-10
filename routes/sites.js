@@ -2,7 +2,7 @@ const router = require('express').Router();
 const cheerio = require('cheerio');
 const fetch = require('node-fetch');
 const { requireAuth, requireSiteAccess } = require('../middleware/auth');
-const { readData, writeData, getSiteHTML, putSiteHTML, putSiteImage, listSitePages, listFileCommits, getFileAtRef } = require('../lib/github-data');
+const { readData, writeData, getSiteHTML, putSiteHTML, putSiteImage, getRepoFileRaw, listSitePages, listFileCommits, getFileAtRef } = require('../lib/github-data');
 const drafts = require('../lib/drafts');
 const discord = require('../lib/discord');
 
@@ -520,27 +520,9 @@ async function proxyHandler(req, res) {
 
     const $ = cheerio.load(html, { decodeEntities: false });
 
-    // Rewrite relative URLs → absolute on the Render domain
-    const base = site.renderUrl.replace(/\/$/, '');
-    $('[src]').each((_, el) => {
-      const v = $(el).attr('src');
-      if (v && !v.startsWith('http') && !v.startsWith('//') && !v.startsWith('data:')) {
-        $(el).attr('src', `${base}/${v.replace(/^\//, '')}`);
-      }
-    });
-    $('[href]').each((_, el) => {
-      const v = $(el).attr('href');
-      if (v && !v.startsWith('http') && !v.startsWith('//') && !v.startsWith('#') && !v.startsWith('mailto:') && !v.startsWith('tel:')) {
-        $(el).attr('href', `${base}/${v.replace(/^\//, '')}`);
-      }
-    });
-    $('[srcset]').each((_, el) => {
-      const v = $(el).attr('srcset');
-      if (v) {
-        $(el).attr('srcset', v.replace(/([^,\s]+)(\s+\d+[wx])/g, (m, url, desc) =>
-          (!url.startsWith('http') && !url.startsWith('//')) ? `${base}/${url.replace(/^\//, '')}${desc}` : m));
-      }
-    });
+    // Rewrite relative URLs to the portal-served /live path so assets (images,
+    // css) load from the repo — the site's own Render domain may not exist.
+    rewriteRelative($, `/live/${slug}`);
 
     injectOcIds($);
     if (req.query.canvas) injectOcSecs($);
@@ -602,5 +584,61 @@ function escapeHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// Rewrite a site's relative asset/link URLs onto a given base path so the page
+// renders correctly when served from somewhere other than its own domain root.
+function rewriteRelative($, base) {
+  const abs = v => `${base}/${v.replace(/^\//, '')}`;
+  $('[src]').each((_, el) => {
+    const v = $(el).attr('src');
+    if (v && !v.startsWith('http') && !v.startsWith('//') && !v.startsWith('data:')) $(el).attr('src', abs(v));
+  });
+  $('[href]').each((_, el) => {
+    const v = $(el).attr('href');
+    if (v && !v.startsWith('http') && !v.startsWith('//') && !v.startsWith('#') && !v.startsWith('mailto:') && !v.startsWith('tel:')) $(el).attr('href', abs(v));
+  });
+  $('[srcset]').each((_, el) => {
+    const v = $(el).attr('srcset');
+    if (v) $(el).attr('srcset', v.replace(/([^,\s]+)(\s+\d+[wx])/g, (m, url, desc) =>
+      (!url.startsWith('http') && !url.startsWith('//')) ? `${abs(url)}${desc}` : m));
+  });
+}
+
+// ── Public live serving ─────────────────────────────────────────────────────────
+// Serve each site straight from its GitHub repo at /live/:slug. This is the real
+// public URL for a site: the repo is the source of truth and always exists, so a
+// site works the moment its repo is created — no separate Render deploy required.
+async function liveHandler(req, res) {
+  try {
+    const { slug } = req.params;
+    let sub = (req.params[0] || 'index.html').replace(/^\/+/, '');
+    if (!sub || sub.endsWith('/')) sub += 'index.html';
+    if (sub.includes('..')) return res.status(400).send('Bad path');
+
+    const sites = await readData('sites');
+    const site = sites?.[slug];
+    if (!site || !site.githubRepo) return res.status(404).send('Site not found');
+
+    if (/\.html?$/i.test(sub)) {
+      const { html } = await getSiteHTML(site.githubRepo, sub);
+      if (html == null) return res.status(404).send('Page not found');
+      const $ = cheerio.load(html, { decodeEntities: false });
+      rewriteRelative($, `/live/${slug}`);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=60');
+      return res.send($.html());
+    }
+
+    const file = await getRepoFileRaw(site.githubRepo, sub);
+    if (!file) return res.status(404).send('Not found');
+    res.setHeader('Content-Type', file.contentType);
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    return res.send(file.buffer);
+  } catch (err) {
+    console.error('[live] error:', err.message);
+    res.status(500).send('Error loading site');
+  }
+}
+
 module.exports = router;
 module.exports.proxyHandler = proxyHandler;
+module.exports.liveHandler = liveHandler;
