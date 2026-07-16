@@ -8,9 +8,12 @@ const discord = require('../lib/discord');
 
 const GH_ORG = process.env.GITHUB_ORG || 'josephbusinesses664-dot';
 
-// GET /api/sites — public list of all sites
+// GET /api/sites — public list of all sites.
+// CORS-open so the prem-ium-inc marketing/portfolio site can fetch it cross-origin
+// to render its gallery with permanent /live/<slug> links.
 router.get('/', async (req, res) => {
   try {
+    res.setHeader('Access-Control-Allow-Origin', '*');
     const sites = await readData('sites');
     if (!sites) return res.json({});
     const pub = {};
