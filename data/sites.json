@@ -3106,5 +3106,41 @@
     "owner": "",
     "addedAt": "2026-07-16",
     "autoSynced": true
+  },
+  "donie-s-art": {
+    "business": "Donie's Art",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://donie-s-art.onrender.com",
+    "githubRepo": "preview-donie-s-art",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-16",
+    "autoSynced": true
+  },
+  "sai-planet-hair-and-beauty-lajpat-nagar": {
+    "business": "prospect site preview: sai-planet-hair-and-beauty-lajpat-nagar",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://sai-planet-hair-and-beauty-lajpat-nagar.onrender.com",
+    "githubRepo": "preview-sai-planet-hair-and-beauty-lajpat-nagar",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-16",
+    "autoSynced": true
+  },
+  "swastik-acting-modeling-institute-salt-lake": {
+    "business": "prospect site preview: swastik-acting-modeling-institute-salt-lake",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://swastik-acting-modeling-institute-salt-lake.onrender.com",
+    "githubRepo": "preview-swastik-acting-modeling-institute-salt-lake",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-16",
+    "autoSynced": true
   }
 }
