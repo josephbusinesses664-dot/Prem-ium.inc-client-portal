@@ -29,6 +29,16 @@ app.get('/preview/:slug', require('./routes/sites').proxyHandler);
 app.get('/live/:slug', require('./routes/sites').liveHandler);
 app.get('/live/:slug/*', require('./routes/sites').liveHandler);
 
+// Brand-domain permanent links: /s/:nameSlug (proxied from prem-ium-inc.onrender.com/s/*)
+app.get('/s/:nameSlug', require('./routes/sites').liveByNameHandler);
+app.get('/s/:nameSlug/*', require('./routes/sites').liveByNameHandler);
+
+// Auto-updating portfolio feed for the static prem-ium-inc gallery (CORS-open)
+app.get('/api/portfolio', require('./routes/sites').portfolioHandler);
+
+// Keep-warm ping target — hit every ~10 min so the free web service never sleeps
+app.get('/healthz', (req, res) => res.type('text').send('ok'));
+
 // SPA fallback for client-side pages
 app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));

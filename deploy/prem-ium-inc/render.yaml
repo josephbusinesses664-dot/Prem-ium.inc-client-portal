@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: prem-ium-inc
+    runtime: static
+    staticPublishPath: .
+    buildCommand: ""
+    pullRequestPreviewsEnabled: false
+    routes:
+      # Brand permanent links: /s/<business> → portal, which renders the site live from git.
+      # Render static sites can't transparently proxy, so this is a 302 redirect (the shared link
+      # is on-brand; the browser lands on the portal host after the click). If your plan supports
+      # rewrite-to-external, change `redirect` → `rewrite` to keep the URL on-brand throughout.
+      - type: redirect
+        source: /s/*
+        destination: https://prem-ium-inc-client-portal.onrender.com/s/:splat

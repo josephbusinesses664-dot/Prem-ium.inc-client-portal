@@ -607,38 +607,95 @@ function rewriteRelative($, base) {
 // Serve each site straight from its GitHub repo at /live/:slug. This is the real
 // public URL for a site: the repo is the source of truth and always exists, so a
 // site works the moment its repo is created — no separate Render deploy required.
+// Normalize the wildcard tail into a repo file path (defaults to index.html).
+function subPath(req) {
+  let sub = (req.params[0] || 'index.html').replace(/^\/+/, '');
+  if (!sub || sub.endsWith('/')) sub += 'index.html';
+  return sub;
+}
+
+// Core: serve one file from a resolved site's repo, rewriting relative URLs under `base`
+// so assets resolve back through the same public path (/live/:slug or /s/:nameSlug).
+async function serveSiteFile(site, sub, base, res) {
+  if (/\.html?$/i.test(sub)) {
+    const { html } = await getSiteHTML(site.githubRepo, sub);
+    if (html == null) return res.status(404).send('Page not found');
+    const $ = cheerio.load(html, { decodeEntities: false });
+    rewriteRelative($, base);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=60');
+    return res.send($.html());
+  }
+  const file = await getRepoFileRaw(site.githubRepo, sub);
+  if (!file) return res.status(404).send('Not found');
+  res.setHeader('Content-Type', file.contentType);
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  return res.send(file.buffer);
+}
+
 async function liveHandler(req, res) {
   try {
     const { slug } = req.params;
-    let sub = (req.params[0] || 'index.html').replace(/^\/+/, '');
-    if (!sub || sub.endsWith('/')) sub += 'index.html';
+    const sub = subPath(req);
     if (sub.includes('..')) return res.status(400).send('Bad path');
 
     const sites = await readData('sites');
     const site = sites?.[slug];
     if (!site || !site.githubRepo) return res.status(404).send('Site not found');
 
-    if (/\.html?$/i.test(sub)) {
-      const { html } = await getSiteHTML(site.githubRepo, sub);
-      if (html == null) return res.status(404).send('Page not found');
-      const $ = cheerio.load(html, { decodeEntities: false });
-      rewriteRelative($, `/live/${slug}`);
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=60');
-      return res.send($.html());
-    }
-
-    const file = await getRepoFileRaw(site.githubRepo, sub);
-    if (!file) return res.status(404).send('Not found');
-    res.setHeader('Content-Type', file.contentType);
-    res.setHeader('Cache-Control', 'public, max-age=300');
-    return res.send(file.buffer);
+    return await serveSiteFile(site, sub, `/live/${slug}`, res);
   } catch (err) {
     console.error('[live] error:', err.message);
     res.status(500).send('Error loading site');
   }
 }
 
+// Brand-domain permanent link: /s/:nameSlug, rendered live from git. Reached directly
+// on the portal, or proxied through prem-ium-inc.onrender.com/s/* (see prem-ium-inc render.yaml).
+async function liveByNameHandler(req, res) {
+  try {
+    const { nameSlug } = req.params;
+    const sub = subPath(req);
+    if (sub.includes('..')) return res.status(400).send('Bad path');
+
+    const sites = await readData('sites');
+    const site = Object.values(sites || {}).find(s => s.nameSlug === nameSlug);
+    if (!site || !site.githubRepo) return res.status(404).send('Site not found');
+    if (site.hidden) return res.status(404).send('This site is coming soon.');
+
+    return await serveSiteFile(site, sub, `/s/${nameSlug}`, res);
+  } catch (err) {
+    console.error('[live-by-name] error:', err.message);
+    res.status(500).send('Error loading site');
+  }
+}
+
+// Public, CORS-open portfolio feed for the static prem-ium-inc site to render its
+// gallery from — so the portfolio auto-updates as the org gains repos (via sites.json sync).
+const PUBLIC_SITE_BASE = (process.env.PUBLIC_SITE_BASE || 'https://prem-ium-inc.onrender.com').replace(/\/+$/, '');
+
+async function portfolioHandler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  try {
+    const sites = await readData('sites');
+    const list = Object.entries(sites || {})
+      .filter(([, s]) => !s.hidden && s.githubRepo)
+      .map(([slug, s]) => ({
+        business: s.business,
+        city: s.city,
+        category: s.category,
+        // Pretty brand link when a nameSlug exists; canonical /live/:slug otherwise.
+        url: s.nameSlug ? `${PUBLIC_SITE_BASE}/s/${s.nameSlug}` : `${PUBLIC_SITE_BASE}/live/${slug}`,
+      }));
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 module.exports = router;
 module.exports.proxyHandler = proxyHandler;
 module.exports.liveHandler = liveHandler;
+module.exports.liveByNameHandler = liveByNameHandler;
+module.exports.portfolioHandler = portfolioHandler;

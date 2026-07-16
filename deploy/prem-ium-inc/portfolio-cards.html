@@ -1,0 +1,47 @@
+<!--
+  Auto-updating portfolio grid. Replaces the hardcoded card list in portfolio.html.
+  Fetches the portal's public /api/portfolio feed and renders one card per live site.
+  Drop this where the old grid was; keep your page's existing section/heading around it.
+-->
+<div id="portfolio-grid" class="portfolio-grid" aria-live="polite">
+  <p id="portfolio-loading">Loading our latest work…</p>
+</div>
+
+<script>
+(function () {
+  // Portal that serves the feed + renders sites. Change if the portal host changes.
+  var PORTAL = 'https://prem-ium-inc-client-portal.onrender.com';
+  var grid = document.getElementById('portfolio-grid');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function card(site) {
+    var meta = [site.category, site.city].filter(Boolean).map(esc).join(' · ');
+    return (
+      '<a class="portfolio-card" href="' + esc(site.url) + '" target="_blank" rel="noopener">' +
+        '<h3>' + esc(site.business) + '</h3>' +
+        (meta ? '<p class="portfolio-meta">' + meta + '</p>' : '') +
+        '<span class="portfolio-view">View site →</span>' +
+      '</a>'
+    );
+  }
+
+  fetch(PORTAL + '/api/portfolio')
+    .then(function (r) { if (!r.ok) throw new Error('feed ' + r.status); return r.json(); })
+    .then(function (sites) {
+      if (!Array.isArray(sites) || !sites.length) {
+        grid.innerHTML = '<p>New sites coming soon.</p>';
+        return;
+      }
+      grid.innerHTML = sites.map(card).join('');
+    })
+    .catch(function () {
+      var el = document.getElementById('portfolio-loading');
+      if (el) el.textContent = 'Portfolio is refreshing — please check back shortly.';
+    });
+})();
+</script>
