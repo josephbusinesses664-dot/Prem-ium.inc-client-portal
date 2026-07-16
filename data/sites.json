@@ -3082,5 +3082,29 @@
     "owner": "",
     "addedAt": "2026-07-16",
     "autoSynced": true
+  },
+  "uday-studio-indiranagar": {
+    "business": "prospect site preview: uday-studio-indiranagar",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://uday-studio-indiranagar.onrender.com",
+    "githubRepo": "preview-uday-studio-indiranagar",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-16",
+    "autoSynced": true
+  },
+  "vidha-jayanagar": {
+    "business": "prospect site preview: vidha-jayanagar",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://vidha-jayanagar.onrender.com",
+    "githubRepo": "preview-vidha-jayanagar",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-16",
+    "autoSynced": true
   }
 }
