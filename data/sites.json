@@ -3238,5 +3238,17 @@
     "owner": "",
     "addedAt": "2026-07-19",
     "autoSynced": true
+  },
+  "dom-s-beach-sh": {
+    "business": "Dom's Beach Shack",
+    "city": "Candolim, Goa",
+    "category": "Beach Shack / Restaurant",
+    "renderUrl": "https://preview-dom-s-beach-shack.onrender.com",
+    "githubRepo": "preview-dom-s-beach-shack",
+    "phone": "+919822381013",
+    "email": "",
+    "owner": "Dominic Dsouza",
+    "addedAt": "2026-07-25",
+    "hidden": false
   }
 }
