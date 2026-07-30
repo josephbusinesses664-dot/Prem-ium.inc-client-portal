@@ -3250,5 +3250,17 @@
     "owner": "Dominic Dsouza",
     "addedAt": "2026-07-25",
     "hidden": false
+  },
+  "fit-and-lift": {
+    "business": "FIT AND LIFT",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://fit-and-lift.onrender.com",
+    "githubRepo": "preview-fit-and-lift",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-30",
+    "autoSynced": true
   }
 }
