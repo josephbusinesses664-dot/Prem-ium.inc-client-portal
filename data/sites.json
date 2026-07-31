@@ -3262,5 +3262,17 @@
     "owner": "",
     "addedAt": "2026-07-30",
     "autoSynced": true
+  },
+  "scotts-diner": {
+    "business": "Scotts Diner",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://scotts-diner.onrender.com",
+    "githubRepo": "preview-scotts-diner",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-07-31",
+    "autoSynced": true
   }
 }
