@@ -3274,5 +3274,17 @@
     "owner": "",
     "addedAt": "2026-07-31",
     "autoSynced": true
+  },
+  "talwalkars": {
+    "business": "Talwalkars",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://talwalkars.onrender.com",
+    "githubRepo": "preview-talwalkars",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-01",
+    "autoSynced": true
   }
 }
