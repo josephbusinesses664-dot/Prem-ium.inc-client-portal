@@ -3286,5 +3286,17 @@
     "owner": "",
     "addedAt": "2026-08-01",
     "autoSynced": true
+  },
+  "auto-tech": {
+    "business": "Auto Tech",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://auto-tech.onrender.com",
+    "githubRepo": "preview-auto-tech",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-02",
+    "autoSynced": true
   }
 }
