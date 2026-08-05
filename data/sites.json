@@ -3310,5 +3310,17 @@
     "owner": "",
     "addedAt": "2026-08-04",
     "autoSynced": true
+  },
+  "kon-rk": {
+    "business": "Konārk",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://kon-rk.onrender.com",
+    "githubRepo": "preview-kon-rk",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-05",
+    "autoSynced": true
   }
 }
