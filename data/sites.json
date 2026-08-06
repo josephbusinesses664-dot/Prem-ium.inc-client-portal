@@ -3322,5 +3322,17 @@
     "owner": "",
     "addedAt": "2026-08-05",
     "autoSynced": true
+  },
+  "mccoy-s-coffee-shop": {
+    "business": "McCoy's Coffee Shop",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://mccoy-s-coffee-shop.onrender.com",
+    "githubRepo": "preview-mccoy-s-coffee-shop",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-06",
+    "autoSynced": true
   }
 }
