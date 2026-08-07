@@ -3334,5 +3334,17 @@
     "owner": "",
     "addedAt": "2026-08-06",
     "autoSynced": true
+  },
+  "study-abroad": {
+    "business": "Study Abroad",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://study-abroad.onrender.com",
+    "githubRepo": "preview-study-abroad",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-07",
+    "autoSynced": true
   }
 }
