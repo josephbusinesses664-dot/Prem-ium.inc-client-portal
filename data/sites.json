@@ -3346,5 +3346,17 @@
     "owner": "",
     "addedAt": "2026-08-07",
     "autoSynced": true
+  },
+  "la-chiropractic": {
+    "business": "LA Chiropractic",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://la-chiropractic.onrender.com",
+    "githubRepo": "preview-la-chiropractic",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-09",
+    "autoSynced": true
   }
 }
