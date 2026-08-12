@@ -3358,5 +3358,17 @@
     "owner": "",
     "addedAt": "2026-08-09",
     "autoSynced": true
+  },
+  "lala-arts-jewellery": {
+    "business": "Lala Arts Jewellery",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://lala-arts-jewellery.onrender.com",
+    "githubRepo": "preview-lala-arts-jewellery",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-12",
+    "autoSynced": true
   }
 }
