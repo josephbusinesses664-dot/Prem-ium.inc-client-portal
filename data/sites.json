@@ -3370,5 +3370,17 @@
     "owner": "",
     "addedAt": "2026-08-12",
     "autoSynced": true
+  },
+  "pronto-city-auto-repair": {
+    "business": "Pronto City Auto Repair",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://pronto-city-auto-repair.onrender.com",
+    "githubRepo": "preview-pronto-city-auto-repair",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-14",
+    "autoSynced": true
   }
 }
