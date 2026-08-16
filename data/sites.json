@@ -3382,5 +3382,17 @@
     "owner": "",
     "addedAt": "2026-08-14",
     "autoSynced": true
+  },
+  "shirdi-sai-sofa-works": {
+    "business": "Shirdi Sai SOFA WORKS",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://shirdi-sai-sofa-works.onrender.com",
+    "githubRepo": "preview-shirdi-sai-sofa-works",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-16",
+    "autoSynced": true
   }
 }
