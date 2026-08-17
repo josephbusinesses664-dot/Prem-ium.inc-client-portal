@@ -3394,5 +3394,17 @@
     "owner": "",
     "addedAt": "2026-08-16",
     "autoSynced": true
+  },
+  "mj-alterations": {
+    "business": "MJ Alterations",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://mj-alterations.onrender.com",
+    "githubRepo": "preview-mj-alterations",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-17",
+    "autoSynced": true
   }
 }
