@@ -3406,5 +3406,17 @@
     "owner": "",
     "addedAt": "2026-08-17",
     "autoSynced": true
+  },
+  "holliday-alterations-custom-sewing": {
+    "business": "Holliday Alterations & Custom Sewing",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://holliday-alterations-custom-sewing.onrender.com",
+    "githubRepo": "preview-holliday-alterations-custom-sewing",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-17",
+    "autoSynced": true
   }
 }
