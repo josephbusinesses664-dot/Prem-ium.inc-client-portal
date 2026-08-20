@@ -3418,5 +3418,29 @@
     "owner": "",
     "addedAt": "2026-08-17",
     "autoSynced": true
+  },
+  "carla-s-cafe": {
+    "business": "Carla's Cafe",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://carla-s-cafe.onrender.com",
+    "githubRepo": "preview-carla-s-cafe",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-20",
+    "autoSynced": true
+  },
+  "tamales2go-by-tita-tamales": {
+    "business": "Tamales2Go by Tita Tamales",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://tamales2go-by-tita-tamales.onrender.com",
+    "githubRepo": "preview-tamales2go-by-tita-tamales",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-20",
+    "autoSynced": true
   }
 }
