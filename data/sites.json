@@ -3454,5 +3454,17 @@
     "owner": "",
     "addedAt": "2026-08-22",
     "autoSynced": true
+  },
+  "top-nails": {
+    "business": "Top Nails",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://top-nails.onrender.com",
+    "githubRepo": "preview-top-nails",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-22",
+    "autoSynced": true
   }
 }
