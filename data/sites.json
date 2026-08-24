@@ -3478,5 +3478,17 @@
     "owner": "",
     "addedAt": "2026-08-23",
     "autoSynced": true
+  },
+  "sequoia-coffee-kitchen": {
+    "business": "Sequoia Coffee & Kitchen",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://sequoia-coffee-kitchen.onrender.com",
+    "githubRepo": "preview-sequoia-coffee-kitchen",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-24",
+    "autoSynced": true
   }
 }
