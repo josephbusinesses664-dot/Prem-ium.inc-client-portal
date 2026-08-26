@@ -3502,5 +3502,17 @@
     "owner": "",
     "addedAt": "2026-08-25",
     "autoSynced": true
+  },
+  "george-s-auto-care": {
+    "business": "George's Auto Care",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://george-s-auto-care.onrender.com",
+    "githubRepo": "preview-george-s-auto-care",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-26",
+    "autoSynced": true
   }
 }
