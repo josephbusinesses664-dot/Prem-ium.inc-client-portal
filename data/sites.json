@@ -3514,5 +3514,17 @@
     "owner": "",
     "addedAt": "2026-08-26",
     "autoSynced": true
+  },
+  "ozone": {
+    "business": "Ozone",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://ozone.onrender.com",
+    "githubRepo": "preview-ozone",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-28",
+    "autoSynced": true
   }
 }
