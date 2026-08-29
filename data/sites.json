@@ -3526,5 +3526,17 @@
     "owner": "",
     "addedAt": "2026-08-28",
     "autoSynced": true
+  },
+  "classic-barbershop": {
+    "business": "Classic Barbershop",
+    "city": "",
+    "category": "Business",
+    "renderUrl": "https://classic-barbershop.onrender.com",
+    "githubRepo": "preview-classic-barbershop",
+    "phone": "",
+    "email": "",
+    "owner": "",
+    "addedAt": "2026-08-29",
+    "autoSynced": true
   }
 }
